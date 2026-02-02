@@ -1,0 +1,186 @@
+<?php
+
+namespace App\Filament\Resources\AccomplishmentHeaders\RelationManagers;
+
+use Filament\Tables\Table;
+
+use Filament\Schemas\Schema;
+use Filament\Actions\EditAction;
+use App\Models\ProgramAndProject;
+use Filament\Actions\CreateAction;
+use Filament\Actions\DeleteAction;
+use Filament\Tables\Filters\Filter;
+use Filament\Forms\Components\Select;
+use Filament\Actions\DeleteBulkAction;
+use Filament\Forms\Components\Textarea;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Forms\Components\TextInput;
+use Filament\Tables\Columns\ImageColumn;
+use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\FileUpload;
+use Filament\Tables\Filters\SelectFilter;
+use Illuminate\Database\Eloquent\Builder;
+use Filament\Resources\RelationManagers\RelationManager;
+use App\Filament\Resources\AccomplishmentHeaders\AccomplishmentHeaderResource;
+
+class AccomplishmentDetailsRelationManager extends RelationManager
+{
+    protected static string $relationship = 'accomplishmentdetails';
+
+    protected static ?string $label = 'Accomplishment Details';
+    protected function getTableHeading(): ?string
+    {
+        return 'Accomplishment Details';
+    }
+    
+    public function form(Schema $schema): Schema
+    {
+        return $schema
+            ->schema([
+                // Select::make('ppa_id')
+                //     ->label('PPA')
+                //     ->options(ProgramAndProject::whereNotNull('paps_desc')
+                //         ->orderBy('paps_desc')
+                //         ->pluck('paps_desc', 'id')
+                //         ->toArray())
+                //     ->searchable()
+                //     ->preload()
+                //     ->required()
+                //     ->columnSpanFull(),
+
+                Select::make('ppa_id')
+                    ->label('PPA')
+                    ->options(function () {
+                        $userDeptCode = auth()->user()->department_code;
+
+                        return ProgramAndProject::whereNotNull('paps_desc')
+                            ->where('department_code', $userDeptCode) // filter by user's department
+                            ->orderBy('paps_desc')
+                            ->pluck('paps_desc', 'id')
+                            ->toArray();
+                    })
+                    ->searchable()
+                    ->preload()
+                    ->required()
+                    ->columnSpanFull(),
+
+                DatePicker::make('date')
+                    ->label('Date')
+                    ->live() // Make it reactive
+                    ->locale('en-US') // Force US format
+                    ->native(false)   // Use JS picker instead of browser native
+                    ->displayFormat('m/d/Y') 
+                    ->placeholder('mm/dd/yyyy') 
+                    ->required(),
+
+                TextInput::make('title_of_accomplishment')
+                    ->label('Title of Accomplishment')
+                    ->required()
+                    ->maxLength(255),
+
+                Textarea::make('brief_description')
+                    ->label('Brief Description')
+                    ->required()
+                    ->rows(3),
+
+                Textarea::make('scope')
+                    ->label('Beneficiaries / Scope')
+                    ->required()
+                    ->rows(3),
+
+                Textarea::make('results')
+                    ->label('Impact / Results (Quantifiable)')
+                    ->required()
+                    ->rows(3)
+                    ->columnSpanFull(),
+
+                FileUpload::make('mov')
+                    ->label('Mode of Verification (MOV) 1-2 pictures only per accomplishment')
+                    ->image()
+                    ->multiple()
+                    ->maxFiles(2)
+                    ->directory('accomplishments')
+                    ->required()
+                    ->columnSpanFull(),
+            ]);
+    }
+
+    public function table(Table $table): Table
+    {
+        return $table
+
+            ->columns([
+                TextColumn::make('date')
+                    ->label('Date')
+                    ->date(),
+                TextColumn::make('title_of_accomplishment')
+                    ->label('Title of Accomplishment')
+                    ->searchable()
+                    ->wrap(),
+                TextColumn::make('brief_description')
+                    ->label('Brief Description')
+                    ->wrap(),
+                TextColumn::make('scope')
+                    ->label('Beneficiaries / Scope')
+                    ->wrap(),
+                TextColumn::make('results')
+                    ->label('Impact / Results (Quantifiable)')
+                    ->wrap(),
+                ImageColumn::make('mov')
+                    ->label('Mode of Verification (MOV)')
+                    ->wrap(),
+                TextColumn::make('ppa.paps_desc')
+                    ->label('PPA')
+                    ->wrap()
+                    ->searchable(),
+            ])
+            ->defaultSort('created_at', 'desc')
+            ->filters([
+                // Filter by PPA
+                SelectFilter::make('ppa_id')
+                    ->label('PPA')
+                    ->options(function () {
+                        $userDeptCode = auth()->user()->department_code;
+
+                        return ProgramAndProject::whereNotNull('paps_desc')
+                            ->where('department_code', $userDeptCode)
+                            ->orderBy('paps_desc')
+                            ->pluck('paps_desc', 'id')
+                            ->toArray();
+                    })
+                    ->searchable()
+                    ->preload(),
+
+                // Filter by Date Range
+                Filter::make('date')
+                    ->form([
+                        DatePicker::make('from')->label('From'),
+                        DatePicker::make('until')->label('Until'),
+                    ])
+                    ->query(function (Builder $query, array $data) {
+                        return $query
+                            ->when(
+                                $data['from'],
+                                fn (Builder $query, $date) =>
+                                    $query->whereDate('date', '>=', $date)
+                            )
+                            ->when(
+                                $data['until'],
+                                fn (Builder $query, $date) =>
+                                    $query->whereDate('date', '<=', $date)
+                            );
+                    }),
+            ])
+
+            ->headerActions([
+                CreateAction::make(),
+            ])
+             ->recordActions([
+                EditAction::make(),
+                DeleteAction::make(),
+            ])
+            ->toolbarActions([
+                DeleteBulkAction::make(),
+            ]);
+    }
+}
