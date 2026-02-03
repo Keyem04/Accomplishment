@@ -3,9 +3,12 @@
 namespace App\Filament\Resources\AccomplishmentHeaders\Tables;
 
 use Filament\Tables\Table;
+use Filament\Actions\Action;
 use Filament\Actions\EditAction;
 use App\Models\AccomplishmentHeader;
+use Illuminate\Support\Facades\Auth;
 use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Columns\BadgeColumn;
@@ -17,7 +20,12 @@ class AccomplishmentHeadersTable
     public static function configure(Table $table): Table
     {
         return $table
-           
+            ->modifyQueryUsing(function (Builder $query) {
+                $user = Auth::user();
+                
+                // Filter: user's department_code must equal header's department_id
+                $query->where('department_id', $user->department_code);
+            })
             ->columns([
                 // TextColumn::make('id')->label('ID')->sortable(),
                 
@@ -29,11 +37,13 @@ class AccomplishmentHeadersTable
                 TextColumn::make('reporting_month')
                     ->label('Month')
                     ->formatStateUsing(fn($state) => date('F', mktime(0,0,0,$state,1)))
-                    ->sortable(),
+                    ->sortable()
+                    ->searchable(),
 
                 TextColumn::make('reporting_year')
                     ->label('Year')
-                    ->sortable(),
+                    ->sortable()
+                    ->searchable(),
                 
 
                 // TextColumn::make('month_year')
@@ -88,7 +98,12 @@ class AccomplishmentHeadersTable
             ])
             
             ->recordActions([
+                Action::make('print')
+                    ->label('Print')
+                    ->icon('heroicon-o-printer')
+                    ->color('gray'),
                 EditAction::make(),
+                DeleteAction::make(),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

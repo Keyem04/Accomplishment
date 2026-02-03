@@ -99,9 +99,13 @@ class AccomplishmentDetailsRelationManager extends RelationManager
                     ->image()
                     ->multiple()
                     ->maxFiles(2)
-                    ->directory('accomplishments')
+                    ->maxSize(10240)
+                    // ->directory('accomplishments')
+                    ->directory(fn () => 'accomplishments/' . now()->format('Y/F'))
                     ->required()
-                    ->columnSpanFull(),
+                    ->columnSpanFull()
+                    ->downloadable()
+                    ->openable(),
             ]);
     }
 
@@ -116,23 +120,79 @@ class AccomplishmentDetailsRelationManager extends RelationManager
                 TextColumn::make('title_of_accomplishment')
                     ->label('Title of Accomplishment')
                     ->searchable()
-                    ->wrap(),
+                    ->limit(100)
+                    ->wrap()
+                    ->tooltip(function (TextColumn $column): ?string {
+                        $state = $column->getState();
+
+                        if (strlen($state) <= $column->getCharacterLimit()) {
+                            return null;
+                        }
+
+                        // Only render the tooltip if the column contents exceeds the length limit.
+                        return $state;
+                    }),
                 TextColumn::make('brief_description')
                     ->label('Brief Description')
-                    ->wrap(),
+                    ->limit(100)
+                    ->wrap()
+                    ->tooltip(function (TextColumn $column): ?string {
+                        $state = $column->getState();
+
+                        if (strlen($state) <= $column->getCharacterLimit()) {
+                            return null;
+                        }
+
+                        // Only render the tooltip if the column contents exceeds the length limit.
+                        return $state;
+                    }),
                 TextColumn::make('scope')
                     ->label('Beneficiaries / Scope')
-                    ->wrap(),
+                    ->limit(100)
+                    ->wrap()
+                    ->tooltip(function (TextColumn $column): ?string {
+                        $state = $column->getState();
+
+                        if (strlen($state) <= $column->getCharacterLimit()) {
+                            return null;
+                        }
+
+                        // Only render the tooltip if the column contents exceeds the length limit.
+                        return $state;
+                    }),
                 TextColumn::make('results')
                     ->label('Impact / Results (Quantifiable)')
-                    ->wrap(),
+                    ->limit(100)
+                    ->wrap()
+                    ->tooltip(function (TextColumn $column): ?string {
+                        $state = $column->getState();
+
+                        if (strlen($state) <= $column->getCharacterLimit()) {
+                            return null;
+                        }
+
+                        // Only render the tooltip if the column contents exceeds the length limit.
+                        return $state;
+                    }),
                 ImageColumn::make('mov')
                     ->label('Mode of Verification (MOV)')
+                    ->limit(100)
                     ->wrap(),
                 TextColumn::make('ppa.paps_desc')
                     ->label('PPA')
                     ->wrap()
-                    ->searchable(),
+                    ->limit(100)
+                    ->searchable()
+                    ->tooltip(function (TextColumn $column): ?string {
+                        $state = $column->getState();
+
+                        if (strlen($state) <= $column->getCharacterLimit()) {
+                            return null;
+                        }
+
+                        // Only render the tooltip if the column contents exceeds the length limit.
+                        return $state;
+                    }),
             ])
             ->defaultSort('created_at', 'desc')
             ->filters([
