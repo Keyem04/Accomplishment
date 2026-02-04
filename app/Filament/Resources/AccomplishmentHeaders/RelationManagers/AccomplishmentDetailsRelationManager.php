@@ -28,6 +28,8 @@ class AccomplishmentDetailsRelationManager extends RelationManager
     protected static string $relationship = 'accomplishmentdetails';
 
     protected static ?string $label = 'Accomplishment Details';
+    protected static bool $isLazy = false;
+
     protected function getTableHeading(): ?string
     {
         return 'Accomplishment Details';
