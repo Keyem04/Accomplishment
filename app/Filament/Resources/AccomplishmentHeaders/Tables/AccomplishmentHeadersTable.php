@@ -102,13 +102,18 @@ class AccomplishmentHeadersTable
                     ->label('Print')
                     ->icon('heroicon-o-printer')
                     ->color('gray')
-                    ->url(fn ($record) => route('api.accomplishments.print', [
+                    // ->url(fn ($record) => route('api.accomplishments.print', [
+                    //     'department_id' => $record->department_id,
+                    //     'year' => $record->reporting_year,
+                    //     'month' => $record->reporting_month,
+                    // ]))
+                    ->modalContent(fn($record) => view('filament.print', [
                         'department_id' => $record->department_id,
                         'year' => $record->reporting_year,
                         'month' => $record->reporting_month,
                     ]))
-                    ->disabled(fn ($record) => $record->accomplishmentdetails()->count() === 0)
-                    ->openUrlInNewTab(),
+                    ->slideOver()
+                    ->disabled(fn ($record) => $record->accomplishmentdetails()->count() === 0),
                 EditAction::make(),
                 DeleteAction::make(),
             ])
