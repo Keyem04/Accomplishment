@@ -16,7 +16,7 @@ use Filament\Models\Contracts\FilamentUser;  // Add this import
 class User extends Authenticatable implements FilamentUser, HasName
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasApiTokens, HasFactory, Notifiable;
+    use HasFactory, Notifiable;
 
     protected $connection = 'fms';
     protected $table = 'systemusers';
