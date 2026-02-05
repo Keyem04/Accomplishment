@@ -3,17 +3,20 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Support\Str;
+use Laravel\Sanctum\HasApiTokens;
+use Filament\Models\Contracts\HasName;
+use Filament\Panel;  // Add this import
+use Illuminate\Notifications\Notifiable;
+
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
-use Illuminate\Notifications\Notifiable;
 use Filament\Models\Contracts\FilamentUser;  // Add this import
-use Filament\Panel;  // Add this import
-use Filament\Models\Contracts\HasName;
 
 class User extends Authenticatable implements FilamentUser, HasName
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable;
+    use HasApiTokens, HasFactory, Notifiable;
 
     protected $connection = 'fms';
     protected $table = 'systemusers';

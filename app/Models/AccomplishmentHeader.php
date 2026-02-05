@@ -30,4 +30,9 @@ class AccomplishmentHeader extends Model
         return $this->hasMany(AccomplishmentDetail::class, 'header_id');
     }
 
+    public function ppa()
+    {
+        return $this->belongsTo(\App\Models\ProgramAndProject::class, 'ppa_id');
+    }
+
 }

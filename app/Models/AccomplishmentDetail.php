@@ -43,15 +43,15 @@ class AccomplishmentDetail extends Model
     /**
      * Detail gets department THROUGH header (FMS DB)
      */
-    public function department()
-    {
-        return $this->hasOneThrough(
-            Office::class,
-            AccomplishmentHeader::class,
-            'id',              // FK on headers table
-            'id',              // FK on offices table
-            'header_id',       // Local key on details
-            'department_id'    // Local key on headers
-        );
-    }
+    // public function department()
+    // {
+    //     return $this->hasOneThrough(
+    //         Office::class,
+    //         AccomplishmentHeader::class,
+    //         'id',              // FK on headers table
+    //         'id',              // FK on offices table
+    //         'header_id',       // Local key on details
+    //         'department_id'    // Local key on headers
+    //     );
+    // }
 }

@@ -42,7 +42,8 @@ class Login extends BaseLogin
         return TextInput::make('UserPassword')
             ->label('Password')
             ->required()
-            ->password();
+            ->password()
+            ->revealable();
     }
 
     protected function getCredentialsFromFormData(array $data): array

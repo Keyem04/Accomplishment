@@ -104,7 +104,7 @@ class AccomplishmentDetailsRelationManager extends RelationManager
                     ->maxSize(10240)
                     // ->directory('accomplishments')
                     ->directory(fn () => 'accomplishments/' . now()->format('Y/F'))
-                    ->required()
+                    // ->required()
                     ->columnSpanFull()
                     ->downloadable()
                     ->openable(),

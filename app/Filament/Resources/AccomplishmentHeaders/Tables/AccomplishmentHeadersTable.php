@@ -101,7 +101,14 @@ class AccomplishmentHeadersTable
                 Action::make('print')
                     ->label('Print')
                     ->icon('heroicon-o-printer')
-                    ->color('gray'),
+                    ->color('gray')
+                    ->url(fn ($record) => route('api.accomplishments.print', [
+                        'department_id' => $record->department_id,
+                        'year' => $record->reporting_year,
+                        'month' => $record->reporting_month,
+                    ]))
+                    ->disabled(fn ($record) => $record->accomplishmentdetails()->count() === 0)
+                    ->openUrlInNewTab(),
                 EditAction::make(),
                 DeleteAction::make(),
             ])
