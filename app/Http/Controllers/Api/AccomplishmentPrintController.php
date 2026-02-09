@@ -47,7 +47,7 @@ class AccomplishmentPrintController extends Controller
            return collect($details->transform(function($item) {
                 // $item['mov'] = collect($item->mov)->map(fn($image) => ['image' => $image]);
                 // $item['mov'] = collect($item->mov)->map(fn($image) => ['image' => asset('storage/' . $image)]);
-                $movImages = collect($item->mov ?? []);
+
                 $data = [
                     'department_id' => $item->header?->department_id,
                     'office' => $item->header?->department?->office,
@@ -59,14 +59,12 @@ class AccomplishmentPrintController extends Controller
                     'scope' => $item->scope,
                     'results' => $item->results,
                     'paps_desc' => $item->ppa?->paps_desc,
-                    // 'mov' => collect($item->mov ?? [])
-                    //     ->map(fn($imagePath) => [
-                    //         'image' => url('storage/' . $imagePath)
-                    //     ])
-                    //     ->values()
-                    //     ->toArray()
-                    'mov_image_1' => $movImages->get(0) ? url('storage/' . $movImages->get(0)) : '',
-                    'mov_image_2' => $movImages->get(1) ? url('storage/' . $movImages->get(1)) : '',
+                    'mov' => collect($item->mov ?? [])
+                        ->map(fn($imagePath) => [
+                            'image' => url('storage/' . $imagePath)
+                        ])
+                        ->values()
+                        ->toArray()
                     
                 ];
 
