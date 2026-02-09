@@ -59,13 +59,13 @@ class AccomplishmentPrintController extends Controller
                     'scope' => $item->scope,
                     'results' => $item->results,
                     'paps_desc' => $item->ppa?->paps_desc,
-                    // 'mov' => collect($item->mov ?? [])
-                    //     ->map(fn($imagePath) => [
-                    //         'image' => url('storage/' . $imagePath)
-                    //     ])
-                    //     ->values()
-                    //     ->toArray()
-                    'mov' => $item->mov,
+                    'mov' => collect($item->mov ?? [])
+                        ->map(fn($imagePath) => [
+                            'image' => url('storage/' . $imagePath)
+                        ])
+                        ->values()
+                        ->toArray()
+                    
                 ];
 
                 return $data;
