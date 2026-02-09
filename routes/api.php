@@ -26,5 +26,5 @@ use App\Http\Controllers\Api\AccomplishmentPrintController;
 
 
 
-Route::get('accomplishments/print', [AccomplishmentPrintController::class, 'print'])
-    ->name('api.accomplishments.print');
+// Route::get('accomplishments/print', [AccomplishmentPrintController::class, 'print'])
+//     ->name('api.accomplishments.print');

@@ -5,6 +5,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\AccomplishmentPrintController;
 
 Route::get('/login/authentication', function (Request $request) {
     $username = $request->query('username');
@@ -24,3 +25,5 @@ Route::get('/login/authentication', function (Request $request) {
     Auth::login($user);
     return redirect()->to('/accomplishment-headers');
 });
+
+Route::get('accomplishments/print', [AccomplishmentPrintController::class, 'print']);
