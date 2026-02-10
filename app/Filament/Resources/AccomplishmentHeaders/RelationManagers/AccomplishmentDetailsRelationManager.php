@@ -101,7 +101,7 @@ class AccomplishmentDetailsRelationManager extends RelationManager
                     ->image()
                     ->multiple()
                     ->maxFiles(2)
-                    ->maxSize(10240)
+                    ->maxSize(5120)
                     // ->directory('accomplishments')
                     
                     ->directory(fn () => 'accomplishments/' . now()->format('Y/F'))

@@ -19,6 +19,26 @@ class UserResource extends Resource
     protected static ?string $model = User::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static bool $shouldRegisterNavigation = false;
+    public static function canViewAny(): bool
+    {
+        return false;
+    }
+
+    public static function canCreate(): bool
+    {
+        return false;
+    }
+
+    public static function canEdit($record): bool
+    {
+        return false;
+    }
+
+    public static function canDelete($record): bool
+    {
+        return false;
+    }
 
     public static function form(Schema $schema): Schema
     {

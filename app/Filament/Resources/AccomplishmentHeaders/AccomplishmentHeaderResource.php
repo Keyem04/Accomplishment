@@ -20,7 +20,7 @@ class AccomplishmentHeaderResource extends Resource
 {
     protected static ?string $model = AccomplishmentHeader::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedCheckBadge;
 
     protected static ?string $recordTitleAttribute = 'id';
     protected static string $relationship = 'accomplishmentdetails';
