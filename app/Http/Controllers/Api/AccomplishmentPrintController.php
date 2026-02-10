@@ -47,6 +47,9 @@ class AccomplishmentPrintController extends Controller
            return collect($details->transform(function($item) {
                 // $item['mov'] = collect($item->mov)->map(fn($image) => ['image' => $image]);
                 // $item['mov'] = collect($item->mov)->map(fn($image) => ['image' => asset('storage/' . $image)]);
+                $images = collect($item->mov ?? [])
+                    ->map(fn ($imagePath) => url('storage/' . $imagePath))
+                    ->values();
 
                 $data = [
                     'department_id' => $item->header?->department_id,
@@ -59,13 +62,16 @@ class AccomplishmentPrintController extends Controller
                     'scope' => $item->scope,
                     'results' => $item->results,
                     'paps_desc' => $item->ppa?->paps_desc,
-                    'mov' => collect($item->mov ?? [])
-                        ->map(fn($imagePath) => [
-                            'image' => url('storage/' . $imagePath)
-                        ])
-                        ->values()
-                        ->toArray()
-                    
+                    // 'mov' => collect($item->mov ?? [])
+                    //     ->map(fn($imagePath) => [
+                    //         'image' => url('storage/' . $imagePath)
+                    //     ])
+                    //     ->values()
+                    //     ->toArray()
+                    // 👇 MOV images flattened
+                    'image1' => $images->get(0), // null if not exists
+                    'image2' => $images->get(1), // null if not exists
+                                    
                 ];
 
                 return $data;
