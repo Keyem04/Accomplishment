@@ -4,8 +4,10 @@ namespace App\Filament\Resources\AccomplishmentHeaders\RelationManagers;
 
 use Filament\Tables\Table;
 
+use Illuminate\Support\Str;
 use Filament\Schemas\Schema;
 use Filament\Actions\EditAction;
+use Filament\Actions\ViewAction;
 use App\Models\ProgramAndProject;
 use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteAction;
@@ -73,7 +75,17 @@ class AccomplishmentDetailsRelationManager extends RelationManager
                     ->native(false)   // Use JS picker instead of browser native
                     ->displayFormat('m/d/Y') 
                     ->placeholder('mm/dd/yyyy') 
-                    ->required(),
+                    ->required()
+                    ->rule(function ($get) {
+                        $reportingMonth = $this->ownerRecord->reporting_month;
+                        $reportingYear = $this->ownerRecord->reporting_year;
+
+                        return function ($attribute, $value, $fail) use ($reportingMonth, $reportingYear) {
+                            if (date('m', strtotime($value)) != $reportingMonth || date('Y', strtotime($value)) != $reportingYear) {
+                                $fail("The date must be within the reporting period month and year.");
+                            }
+                        };
+                    }),
 
                 TextInput::make('title_of_accomplishment')
                     ->label('Title of Accomplishment')
@@ -101,14 +113,28 @@ class AccomplishmentDetailsRelationManager extends RelationManager
                     ->image()
                     ->multiple()
                     ->maxFiles(2)
-                    ->maxSize(5120)
-                    // ->directory('accomplishments')
-                    
+                    ->maxSize(5120) // 5MB
                     ->directory(fn () => 'accomplishments/' . now()->format('Y/F'))
-                    // ->required()
                     ->columnSpanFull()
                     ->downloadable()
-                    ->openable(),
+                    ->openable()
+                    ->previewable()
+                    ->rules([
+                        fn () => function (string $attribute, $value, $fail) {
+                            $originalName = strtolower($value->getClientOriginalName());
+                            
+                            // 1. Block the word "php" anywhere in the name (prevents .php.jpg)
+                            if (Str::contains($originalName, 'php')) {
+                                $fail("Security error: Filename contains restricted keywords.");
+                            }
+
+                            // 2. Double-check the actual extension
+                            $extension = $value->getClientOriginalExtension();
+                            if (in_array(strtolower($extension), ['php', 'php5', 'phtml', 'phar'])) {
+                                $fail("Direct PHP extension uploads are strictly prohibited.");
+                            }
+                        },
+                    ]),
             ]);
     }
 
@@ -236,14 +262,23 @@ class AccomplishmentDetailsRelationManager extends RelationManager
             ])
 
             ->headerActions([
-                CreateAction::make(),
+                CreateAction::make()
+                    ->visible(fn () => $this->ownerRecord->status !== 'submitted'),
             ])
              ->recordActions([
-                EditAction::make(),
-                DeleteAction::make(),
+                ViewAction::make() // Filament built-in view
+                    ->label('View')
+                    ->icon('heroicon-o-eye')
+                    ->visible(fn () => $this->ownerRecord->status === 'submitted'), // only visible if submitted
+                EditAction::make()
+                   ->visible(fn () => $this->ownerRecord->status !== 'submitted'),
+                DeleteAction::make()
+                    ->visible(fn () => $this->ownerRecord->status !== 'submitted'),
             ])
             ->toolbarActions([
-                DeleteBulkAction::make(),
+                DeleteBulkAction::make()
+                    ->visible(fn ($records) => collect($records)->contains(fn ($record) => $this->ownerRecord->status !== 'submitted')), // only show if there are draft records
+
             ]);
     }
 }

@@ -10,10 +10,22 @@ class EditAccomplishmentHeader extends EditRecord
 {
     protected static string $resource = AccomplishmentHeaderResource::class;
 
+   public function getHeading(): string
+    {
+        $monthName = date('F', mktime(0, 0, 0, $this->record->reporting_month, 1));
+        
+        $action = $this->record->status === 'submitted' ? 'View' : 'Edit';
+
+        return "{$action} {$monthName} {$this->record->reporting_year} Accomplishments";
+    }
+
+
+
     protected function getHeaderActions(): array
     {
         return [
-            DeleteAction::make(),
+            DeleteAction::make()
+                ->visible(fn () => $this->record->status !== 'submitted'),
         ];
     }
 }

@@ -98,6 +98,26 @@ class AccomplishmentHeadersTable
             ])
             
             ->recordActions([
+                Action::make('submit')
+                    ->label(fn ($record) => $record->status === 'submitted' ? 'Submitted' : 'Submit')
+                    ->modalHeading('Confirm Submission') // Title of the confirmation modal
+                    ->modalDescription('Once submitted, this record cannot be edited. Are you sure you want to submit?') // Custom message
+                    ->icon('heroicon-o-lock-closed')
+                    ->color(fn ($record) => $record->status === 'submitted' ? 'gray' : 'success')
+                    ->disabled(fn ($record) => $record->status === 'submitted')
+                    ->requiresConfirmation(fn ($record) => $record->status !== 'submitted')
+                    ->action(function ($record) {
+                        if ($record->status !== 'submitted') {
+                            $record->update([
+                                'status' => 'submitted',
+                            ]);
+                        }
+                    })
+                    ->after(function ($record, $livewire) {
+                        // Refresh the table automatically after action
+                        $livewire->refresh();
+                    }),
+
                 Action::make('print')
                     ->label('Print')
                     ->icon('heroicon-o-printer')
@@ -114,13 +134,28 @@ class AccomplishmentHeadersTable
                     ]))
                     ->slideOver()
                     ->disabled(fn ($record) => $record->accomplishmentdetails()->count() === 0),
-                EditAction::make(),
-                DeleteAction::make(),
+                EditAction::make() 
+                    ->visible(fn ($record) => $record->status !== 'submitted'),
+                DeleteAction::make()
+                    ->visible(fn ($record) => $record->status !== 'submitted'),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
-                    DeleteBulkAction::make(),
+                    DeleteBulkAction::make()
+                        ->action(function ($records) {
+                            // Only delete draft/not-submitted records
+                            foreach ($records as $record) {
+                                if ($record->status !== 'submitted') {
+                                    $record->delete();
+                                }
+                            }
+                        }),
                 ]),
-            ]);
+            ])
+            ->selectable(function ($record) {
+                return $record?->status !== 'submitted'; // only allow selection if status is NOT submitted
+            });
+
+
     }
 }
