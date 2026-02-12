@@ -1,11 +1,13 @@
 <?php
 
+use App\Http\Controllers\Api\AccomplishmentDetailController;
+use App\Http\Controllers\Api\AccomplishmentHeaderController;
+use App\Http\Controllers\Api\AccomplishmentPrintController;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Api\AccomplishmentPrintController;
 
 Route::get('/login/authentication', function (Request $request) {
     $username = $request->query('username');
@@ -27,3 +29,9 @@ Route::get('/login/authentication', function (Request $request) {
 });
 
 Route::get('accomplishments/print', [AccomplishmentPrintController::class, 'print']);
+
+//http://172.31.102.215:8000/accomplishment-headers?department_id=26
+Route::get('accomplishment-headers', [AccomplishmentHeaderController::class, 'header']);
+
+//http://172.31.102.215:8000/accomplishment-details?header_id=10
+Route::get('accomplishment-details',[AccomplishmentDetailController::class, 'getByHeaderId']);
