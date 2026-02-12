@@ -30,7 +30,7 @@ class AdminPanelProvider extends PanelProvider
             ->default('/admin/accomplishment-headers')
             ->id('admin')
             ->path('')
-            
+            ->unsavedChangesAlerts()
             // ->login()
             ->login(\App\Filament\Pages\Auth\Login::class) 
             // ->registration()
