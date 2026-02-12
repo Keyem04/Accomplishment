@@ -35,3 +35,5 @@ Route::get('accomplishment-headers', [AccomplishmentHeaderController::class, 'he
 
 //http://172.31.102.215:8000/accomplishment-details?header_id=10
 Route::get('accomplishment-details',[AccomplishmentDetailController::class, 'getByHeaderId']);
+
+
