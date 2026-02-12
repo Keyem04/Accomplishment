@@ -38,7 +38,30 @@ class AccomplishmentHeadersTable
                     ->label('Month')
                     ->formatStateUsing(fn($state) => date('F', mktime(0,0,0,$state,1)))
                     ->sortable()
-                    ->searchable(),
+                    ->searchable(query: function ($query, $search) {
+                        $months = [
+                            'january' => 1,
+                            'february' => 2,
+                            'march' => 3,
+                            'april' => 4,
+                            'may' => 5,
+                            'june' => 6,
+                            'july' => 7,
+                            'august' => 8,
+                            'september' => 9,
+                            'october' => 10,
+                            'november' => 11,
+                            'december' => 12,
+                        ];
+
+                        $searchLower = strtolower($search);
+
+                        if (isset($months[$searchLower])) {
+                            $query->where('reporting_month', $months[$searchLower]);
+                        } else {
+                            $query->where('reporting_month', 'like', "%{$search}%");
+                        }
+                    }),
 
                 TextColumn::make('reporting_year')
                     ->label('Year')

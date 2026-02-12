@@ -19,8 +19,6 @@ class EditAccomplishmentHeader extends EditRecord
         return "{$action} {$monthName} {$this->record->reporting_year} Accomplishments";
     }
 
-
-
     protected function getHeaderActions(): array
     {
         return [

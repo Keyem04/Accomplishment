@@ -2,8 +2,10 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Models\AccomplishmentHeader;
+use App\Models\ProgramAndProject;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 
 class AccomplishmentDetail extends Model
 {
@@ -40,18 +42,4 @@ class AccomplishmentDetail extends Model
         return $this->belongsTo(ProgramAndProject::class, 'ppa_id');
     }
 
-    /**
-     * Detail gets department THROUGH header (FMS DB)
-     */
-    // public function department()
-    // {
-    //     return $this->hasOneThrough(
-    //         Office::class,
-    //         AccomplishmentHeader::class,
-    //         'id',              // FK on headers table
-    //         'id',              // FK on offices table
-    //         'header_id',       // Local key on details
-    //         'department_id'    // Local key on headers
-    //     );
-    // }
 }
