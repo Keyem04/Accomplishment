@@ -9,7 +9,7 @@ use Illuminate\Support\Carbon;
 
 class AccomplishmentDetailController extends Controller
 {
-    public function getByHeaderId(Request $request)
+    public function index(Request $request)
     {
         $request->validate([
             'header_id' => 'nullable|integer',
@@ -54,4 +54,5 @@ class AccomplishmentDetailController extends Controller
             })
         );
     }
+
 }
