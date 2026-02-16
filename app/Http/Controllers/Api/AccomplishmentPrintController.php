@@ -77,7 +77,9 @@ class AccomplishmentPrintController extends Controller
                     'image1' => $images->get(0), // null if not exists
                     'image2' => $images->get(1), // null if not exists
                     'include_in_print' => $item->include_in_print,
-                    'user_name'  => trim($requestUser->FullName ?: $requestUser->UserName ?: 'Unknown User'), // ✅ resolved BEFORE the loop
+                    'user_name' => $requestUser 
+                        ? trim($requestUser->FullName ?: $requestUser->UserName ?: 'Unknown User') 
+                        : 'System/Guest',
                 ];
 
                 return $data;
