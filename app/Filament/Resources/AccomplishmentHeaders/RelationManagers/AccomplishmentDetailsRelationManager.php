@@ -2,28 +2,31 @@
 
 namespace App\Filament\Resources\AccomplishmentHeaders\RelationManagers;
 
-use Filament\Tables\Table;
+use App\Filament\Resources\AccomplishmentHeaders\AccomplishmentHeaderResource;
 
-use Illuminate\Support\Str;
-use Filament\Schemas\Schema;
-use Filament\Actions\EditAction;
-use Filament\Actions\ViewAction;
 use App\Models\ProgramAndProject;
+use Filament\Actions\Action;
+use Filament\Actions\BulkAction;
 use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteAction;
-use Filament\Tables\Filters\Filter;
-use Filament\Forms\Components\Select;
 use Filament\Actions\DeleteBulkAction;
-use Filament\Forms\Components\Textarea;
-use Filament\Tables\Columns\TextColumn;
-use Filament\Forms\Components\TextInput;
-use Filament\Tables\Columns\ImageColumn;
+use Filament\Actions\EditAction;
+use Filament\Actions\ViewAction;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\FileUpload;
-use Filament\Tables\Filters\SelectFilter;
-use Illuminate\Database\Eloquent\Builder;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
 use Filament\Resources\RelationManagers\RelationManager;
-use App\Filament\Resources\AccomplishmentHeaders\AccomplishmentHeaderResource;
+use Filament\Schemas\Schema;
+use Filament\Tables\Columns\BadgeColumn;
+use Filament\Tables\Columns\ImageColumn;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\Filter;
+use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Str;
 
 class AccomplishmentDetailsRelationManager extends RelationManager
 {
@@ -222,6 +225,14 @@ class AccomplishmentDetailsRelationManager extends RelationManager
                         // Only render the tooltip if the column contents exceeds the length limit.
                         return $state;
                     }),
+                
+                BadgeColumn::make('include_in_print')
+                    ->label('Print')
+                    ->formatStateUsing(fn (bool $state) => $state ? 'Included' : 'Excluded')
+                    ->colors([
+                        'success' => fn ($state) => $state,  // green for included
+                        'danger'  => fn ($state) => ! $state, // red for excluded
+                    ]),
             ])
             ->defaultSort('created_at', 'desc')
             ->filters([
@@ -266,6 +277,15 @@ class AccomplishmentDetailsRelationManager extends RelationManager
                     ->visible(fn () => $this->ownerRecord->status !== 'submitted'),
             ])
              ->recordActions([
+                // Action::make('togglePrint')
+                //     ->label(fn ($record) => $record->include_in_print ? 'Exclude' : 'Include')
+                //     ->icon('heroicon-o-printer')
+                //     ->action(function ($record) {
+                //         $record->update([
+                //             'include_in_print' => ! $record->include_in_print,
+                //         ]);
+                //     })
+                //     ->color(fn ($record) => $record->include_in_print ? 'danger' : 'success'),
                 ViewAction::make() // Filament built-in view
                     ->label('View')
                     ->icon('heroicon-o-eye')
@@ -276,9 +296,22 @@ class AccomplishmentDetailsRelationManager extends RelationManager
                     ->visible(fn () => $this->ownerRecord->status !== 'submitted'),
             ])
             ->toolbarActions([
+                BulkAction::make('includeSelected')
+                    ->label('Include in Print')
+                    ->icon('heroicon-o-printer')
+                    ->action(fn ($records) =>
+                        $records->each->update(['include_in_print' => true])
+                    )
+                    ->color('success'),
+                BulkAction::make('excludeSelected')
+                    ->label('Exclude from Print')
+                    ->icon('heroicon-o-printer')
+                    ->action(fn ($records) =>
+                        $records->each->update(['include_in_print' => false])
+                    ),
                 DeleteBulkAction::make()
-                    ->visible(fn ($records) => collect($records)->contains(fn ($record) => $this->ownerRecord->status !== 'submitted')), // only show if there are draft records
-
+                    ->disabled(fn ($records) => collect($records)->contains(fn ($record) => $this->ownerRecord->status === 'submitted')), // only show if there are draft records
+                
             ]);
     }
 }
