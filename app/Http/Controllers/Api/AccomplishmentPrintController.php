@@ -20,7 +20,6 @@ class AccomplishmentPrintController extends Controller
             'department_id' => 'nullable|integer',
             'year' => 'nullable|integer',
             'month' => 'nullable|integer',
-            'user_id'  => 'nullable|integer',
         ]);
 
         // dd("test");
@@ -45,13 +44,7 @@ class AccomplishmentPrintController extends Controller
             ->orderBy('date')
             ->get();
 
-            // 👇 fetch ONCE outside the loop
-            $requestUser = $request->filled('user_id')
-                ? User::find($request->user_id)
-                : null;
-
-
-            return collect($details->transform(function($item) use ($requestUser) {
+            return collect($details->transform(function($item) {
                 // $item['mov'] = collect($item->mov)->map(fn($image) => ['image' => $image]);
                 // $item['mov'] = collect($item->mov)->map(fn($image) => ['image' => asset('storage/' . $image)]);
                 $images = collect($item->mov ?? [])
@@ -78,11 +71,6 @@ class AccomplishmentPrintController extends Controller
                     // 👇 MOV images flattened
                     'image1' => $images->get(0), // null if not exists
                     'image2' => $images->get(1), // null if not exists
-                    'include_in_print' => $item->include_in_print,
-                    'user_name' => $requestUser
-                        ? trim(($requestUser->FullName ?? '') ?: ($requestUser->UserName ?? '') ?: 'Unknown User')
-                        : 'Unknown User',
-
                 ];
                 
              
