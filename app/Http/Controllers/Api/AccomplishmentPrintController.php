@@ -45,6 +45,7 @@ class AccomplishmentPrintController extends Controller
                     // ->where('include_in_print', $request->include_in_print ?? true)
                     ;
             })
+            ->where('include_in_print', true)
             ->orderBy('date')
             ->get();
 
