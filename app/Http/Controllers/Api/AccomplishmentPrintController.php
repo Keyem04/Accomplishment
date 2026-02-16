@@ -47,9 +47,9 @@ class AccomplishmentPrintController extends Controller
             ->orderBy('date')
             ->get();
             
-            $requestUser = $request->user();
+            // $requestUser = $request->user();
 
-            return collect($details->transform(function($item) use ($request, $requestUser) {
+            return collect($details->transform(function($item)  {
                 // $item['mov'] = collect($item->mov)->map(fn($image) => ['image' => $image]);
                 // $item['mov'] = collect($item->mov)->map(fn($image) => ['image' => asset('storage/' . $image)]);
                 $images = collect($item->mov ?? [])
@@ -77,7 +77,7 @@ class AccomplishmentPrintController extends Controller
                     'image1' => $images->get(0), // null if not exists
                     'image2' => $images->get(1), // null if not exists
                     'include_in_print' => $item->include_in_print,
-                    'user_name'  => trim($requestUser->FullName ?: $requestUser->UserName ?: 'Unknown User'), // ✅ resolved BEFORE the loop
+                   
                 ];
 
                 return $data;
