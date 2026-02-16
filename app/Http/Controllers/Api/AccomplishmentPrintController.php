@@ -2,13 +2,14 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Models\Office;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use App\Models\AccomplishmentDetail;
 use App\Models\AccomplishmentHeader;
+use App\Models\Office;
+use App\Models\User;
+use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 
 class AccomplishmentPrintController extends Controller
 {
@@ -19,7 +20,7 @@ class AccomplishmentPrintController extends Controller
             'department_id' => 'nullable|integer',
             'year' => 'nullable|integer',
             'month' => 'nullable|integer',
-            // 'include_in_print' => 'nullable|boolean',
+            'user_id'  => 'nullable|integer',
         ]);
 
         // dd("test");
@@ -29,32 +30,33 @@ class AccomplishmentPrintController extends Controller
             !$request->filled('department_id') ||
             !$request->filled('year') ||
             !$request->filled('month') 
-            // !$request->filled('include_in_print')
         ) {
             return response()->json([]);
         }
 
 
-        $details = AccomplishmentDetail::with(['header.department', 'ppa', 'user'])
+        $details = AccomplishmentDetail::with(['header.department', 'ppa'])
             ->whereHas('header', function ($query) use ($request) {
                 $query->where('department_id', $request->department_id)
                     ->where('reporting_year', $request->year)
-                    ->where('reporting_month', $request->month)
-                    // ->where('include_in_print', $request->include_in_print ?? true)
-                    ;
+                    ->where('reporting_month', $request->month);
             })
             ->where('include_in_print', true)
             ->orderBy('date')
             ->get();
 
-            return collect($details->transform(function($item) {
+            // 👇 fetch ONCE outside the loop
+            $requestUser = $request->filled('user_id')
+                ? User::find($request->user_id)
+                : null;
+
+
+            return collect($details->transform(function($item) use ($requestUser) {
                 // $item['mov'] = collect($item->mov)->map(fn($image) => ['image' => $image]);
                 // $item['mov'] = collect($item->mov)->map(fn($image) => ['image' => asset('storage/' . $image)]);
                 $images = collect($item->mov ?? [])
                     ->map(fn ($imagePath) => url('storage/' . $imagePath))
                     ->values();
-
-                $requestUser = auth()->user();
 
                 $data = [
                     'department_id' => $item->header?->department_id,
@@ -78,14 +80,12 @@ class AccomplishmentPrintController extends Controller
                     'image2' => $images->get(1), // null if not exists
                     'include_in_print' => $item->include_in_print,
                     'user_name' => $requestUser
-                        ? trim(
-                            $requestUser->FullName
-                            ?? ($requestUser->FirstName ?? '') . ' ' . ($requestUser->LastName ?? '')
-                        )
+                        ? trim(($requestUser->FullName ?? '') ?: ($requestUser->UserName ?? '') ?: 'Unknown User')
                         : 'Unknown User',
 
                 ];
-
+                
+             
                 return $data;
             }));
 

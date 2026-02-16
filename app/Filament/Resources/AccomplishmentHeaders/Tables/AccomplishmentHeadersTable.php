@@ -154,6 +154,7 @@ class AccomplishmentHeadersTable
                         'department_id' => $record->department_id,
                         'year' => $record->reporting_year,
                         'month' => $record->reporting_month,
+                        'user_id'  => auth()->id(),
                     ]))
                     ->slideOver()
                     ->disabled(fn ($record) => $record->accomplishmentdetails()->count() === 0),
