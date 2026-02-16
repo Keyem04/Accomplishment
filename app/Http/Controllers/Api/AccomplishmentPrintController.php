@@ -74,10 +74,16 @@ class AccomplishmentPrintController extends Controller
                     // 👇 MOV images flattened
                     'image1' => $images->get(0), // null if not exists
                     'image2' => $images->get(1), // null if not exists
-                    'image3' => $images->get(2), // null if not exists
                     'include_in_print' => $item->include_in_print,
-                    'user_name' => trim($request->user()?->FullName ?? $request->user()?->UserName ?? 'Unknown User'),
-
+                    'user_name' => trim(
+                        // First try the detail's own user
+                        ($item->user?->FullName ?: null)
+                        ?? ($item->user?->UserName ?: null)
+                        // Fall back to the authenticated request user
+                        ?? ($request->user()?->FullName ?: null)
+                        ?? ($request->user()?->UserName ?: null)
+                        ?? 'Unknown User'
+                    ),
                 ];
 
                 return $data;
