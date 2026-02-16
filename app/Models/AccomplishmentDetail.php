@@ -42,4 +42,9 @@ class AccomplishmentDetail extends Model
         return $this->belongsTo(ProgramAndProject::class, 'ppa_id');
     }
 
+    public function user()
+    {
+        return $this->belongsTo(\App\Models\User::class, 'user_id', 'recid');
+    }
+
 }

@@ -4,5 +4,4 @@ output=pdf&department_id={{ urlencode($department_id) }}&year={{ urlencode($year
     frameborder="0"
     width="100%" 
     height="800px" >
-
 </iframe>

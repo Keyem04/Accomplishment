@@ -22,9 +22,7 @@ class AccomplishmentPrintController extends Controller
             // 'include_in_print' => 'nullable|boolean',
         ]);
 
-
         // dd("test");
-
         
         // ✅ no params → return empty array
         if (
@@ -37,7 +35,7 @@ class AccomplishmentPrintController extends Controller
         }
 
 
-        $details = AccomplishmentDetail::with(['header.department', 'ppa'])
+        $details = AccomplishmentDetail::with(['header.department', 'ppa', 'user'])
             ->whereHas('header', function ($query) use ($request) {
                 $query->where('department_id', $request->department_id)
                     ->where('reporting_year', $request->year)
@@ -49,7 +47,7 @@ class AccomplishmentPrintController extends Controller
             ->orderBy('date')
             ->get();
 
-           return collect($details->transform(function($item) {
+           return collect($details->transform(function($item) use ($request) {
                 // $item['mov'] = collect($item->mov)->map(fn($image) => ['image' => $image]);
                 // $item['mov'] = collect($item->mov)->map(fn($image) => ['image' => asset('storage/' . $image)]);
                 $images = collect($item->mov ?? [])
@@ -78,6 +76,8 @@ class AccomplishmentPrintController extends Controller
                     'image2' => $images->get(1), // null if not exists
                     'image3' => $images->get(2), // null if not exists
                     'include_in_print' => $item->include_in_print,
+                    'user_name' => trim($request->user()?->FullName ?? $request->user()?->UserName ?? 'Unknown User'),
+
                 ];
 
                 return $data;
