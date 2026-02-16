@@ -142,7 +142,7 @@ class AccomplishmentHeadersTable
                     }),
 
                 Action::make('print')
-                    ->label('Print Monthly Report')
+                    ->label('Print')
                     ->icon('heroicon-o-printer')
                     ->color('gray')
                     // ->url(fn ($record) => route('api.accomplishments.print', [
@@ -154,7 +154,6 @@ class AccomplishmentHeadersTable
                         'department_id' => $record->department_id,
                         'year' => $record->reporting_year,
                         'month' => $record->reporting_month,
-                        'accomplishments' => $record->accomplishmentdetails()->where('include_in_print', true)->get()
                     ]))
                     ->slideOver()
                     ->disabled(fn ($record) => $record->accomplishmentdetails()->count() === 0),

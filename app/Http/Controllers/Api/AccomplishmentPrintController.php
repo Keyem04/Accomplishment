@@ -19,7 +19,7 @@ class AccomplishmentPrintController extends Controller
             'department_id' => 'nullable|integer',
             'year' => 'nullable|integer',
             'month' => 'nullable|integer',
-            'include_in_print' => 'nullable|boolean',
+            // 'include_in_print' => 'nullable|boolean',
         ]);
 
 
@@ -30,7 +30,8 @@ class AccomplishmentPrintController extends Controller
         if (
             !$request->filled('department_id') ||
             !$request->filled('year') ||
-            !$request->filled('month')
+            !$request->filled('month') 
+            // !$request->filled('include_in_print')
         ) {
             return response()->json([]);
         }
@@ -40,7 +41,9 @@ class AccomplishmentPrintController extends Controller
             ->whereHas('header', function ($query) use ($request) {
                 $query->where('department_id', $request->department_id)
                     ->where('reporting_year', $request->year)
-                    ->where('reporting_month', $request->month);
+                    ->where('reporting_month', $request->month)
+                    // ->where('include_in_print', $request->include_in_print ?? true)
+                    ;
             })
             ->orderBy('date')
             ->get();
@@ -72,7 +75,8 @@ class AccomplishmentPrintController extends Controller
                     // 👇 MOV images flattened
                     'image1' => $images->get(0), // null if not exists
                     'image2' => $images->get(1), // null if not exists
-                                    
+                    'image3' => $images->get(2), // null if not exists
+                    'include_in_print' => $item->include_in_print,
                 ];
 
                 return $data;
