@@ -19,6 +19,7 @@ class AccomplishmentPrintController extends Controller
             'department_id' => 'nullable|integer',
             'year' => 'nullable|integer',
             'month' => 'nullable|integer',
+            'include_in_print' => 'nullable|boolean',
         ]);
 
 
