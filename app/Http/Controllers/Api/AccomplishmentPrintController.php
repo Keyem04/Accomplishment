@@ -54,7 +54,7 @@ class AccomplishmentPrintController extends Controller
                     ->map(fn ($imagePath) => url('storage/' . $imagePath))
                     ->values();
 
-                $preparedBy = $item->user?->FullName ?: $item->user?->UserName ?: 'System/Guest';
+                $requestUser = auth()->user();
 
                 $data = [
                     'department_id' => $item->header?->department_id,
@@ -77,7 +77,13 @@ class AccomplishmentPrintController extends Controller
                     'image1' => $images->get(0), // null if not exists
                     'image2' => $images->get(1), // null if not exists
                     'include_in_print' => $item->include_in_print,
-                    'prepared_by' => trim($preparedBy), 
+                    'user_name' => $requestUser
+                        ? trim(
+                            $requestUser->FullName
+                            ?? ($requestUser->FirstName ?? '') . ' ' . ($requestUser->LastName ?? '')
+                        )
+                        : 'Unknown User',
+
                 ];
 
                 return $data;
