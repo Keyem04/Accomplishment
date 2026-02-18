@@ -71,6 +71,8 @@ class AccomplishmentPrintController extends Controller
                     // 👇 MOV images flattened
                     'image1' => $images->get(0), // null if not exists
                     'image2' => $images->get(1), // null if not exists
+                    'prepared_by' => $item->header?->prepared_by,
+                    'noted_by' => $item->header?->noted_by,
                 ];
                 
              
