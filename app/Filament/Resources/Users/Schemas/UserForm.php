@@ -2,12 +2,14 @@
 
 namespace App\Filament\Resources\Users\Schemas;
 
+use App\Models\Office;
+use App\Models\Permission;
 use App\Models\User;
-use Filament\Schemas\Schema;
-use Filament\Forms\Components\Select;
-use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\DateTimePicker;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
+use Filament\Schemas\Schema;
 
 class UserForm
 {
@@ -16,73 +18,68 @@ class UserForm
         return $schema
             ->components([
                 TextInput::make('FullName')
-                    ->label('Full Name')
-                    ->required()
-                    ->maxLength(50),
-
-                TextInput::make('Designation')
-                    ->label('Designation')
-                    ->maxLength(50)
-                    ->nullable(),
-
-                TextInput::make('UserName')
-                    ->label('Username')
-                    ->required()
-                    ->maxLength(30)
-                    ->unique(
-                        table: User::class,
-                        column: 'UserName',
-                        ignorable: fn ($record) => $record
-                    ),
-
+                    ->required(fn ($livewire, $record) => !$record),
                 TextInput::make('email')
-                    ->label('Email')
+                    ->label('Email address')
                     ->email()
-                    ->maxLength(100)
-                    ->nullable(),
+                    ->required(fn ($livewire, $record) => !$record),
+                TextInput::make('cats_number')
+                    ->required(fn ($livewire, $record) => !$record),
 
-                TextInput::make('department_code')
+
+                Select::make('department_code')
                     ->label('Department Code')
-                    ->maxLength(3)
-                    ->nullable(),
+                    ->options(fn () => Office::pluck('department_code', 'department_code'))
+                    ->searchable()
+                    ->reactive()
+                    ->afterStateUpdated(function (callable $set, $state) {
+                        $office = Office::where('department_code', $state)->first();
+                        $set('office', $office?->office);
+                    }),
 
-                Select::make('UserType')
-                    ->label('User Type')
-                    ->options([
-                        'ADMIN' => 'Admin',
-                        'USER'  => 'User',
-                    ])
-                    ->nullable(),
+                Select::make('department_code')
+                    ->label('Office')
+                    ->options(
+                        Office::orderBy('office')
+                            ->get()
+                            ->mapWithKeys(function ($office) {
+                                $label = $office->office;
 
-                Select::make('is_active')
-                    ->label('Account Status')
-                    ->options([
-                        1 => 'Active',
-                        0 => 'Inactive',
-                    ])
-                    ->default(1)
-                    ->required(),
+                                if (!empty($office->short_name)) {
+                                    $label .= ' (' . $office->short_name . ')';
+                                }
 
-                TextInput::make('UserPassword')
+                                return [
+                                    $office->department_code => $label
+                                ];
+                            })
+                            ->toArray()
+                    )
+                    ->searchable()
+                    ->preload(),
+                TextInput::make('UserName')
+                    ->required(fn ($livewire, $record) => !$record),
+                TextInput::make('password_input')
                     ->label('Password')
                     ->password()
-                    ->required(fn ($record) => ! $record)
-                    ->dehydrateStateUsing(fn ($state) => md5($state))
-                    ->dehydrated(fn ($state) => filled($state)),
+                    ->revealable()
+                    ->required(fn ($livewire, $record) => !$record)
+                    ->dehydrated(false), // Do not save automatically
+                Select::make('roles')
+                    ->label('Roles')
+                    ->multiple()
+                    ->relationship('roles', 'name')
+                    ->preload()
+                    ->searchable()
+                    ->afterStateUpdated(function (callable $set, $state) {
+                        // When roles change, update the permissions list
+                        $rolePermissions = Permission::whereHas('roles', function ($q) use ($state) {
+                            $q->whereIn('roles.id', $state);
+                        })->pluck('id')->toArray();
 
-                TextInput::make('laravel_password')
-                    ->label('Laravel Password (Optional)')
-                    ->password()
-                    ->dehydrateStateUsing(fn ($state) => bcrypt($state))
-                    ->dehydrated(fn ($state) => filled($state)),
-
-                DatePicker::make('passworddate')
-                    ->label('Password Date')
-                    ->nullable(),
-
-                DatePicker::make('password_expiry')
-                    ->label('Password Expiry')
-                    ->nullable(),
+                        $set('permissions', $rolePermissions);
+                    })
+                    ->columns(1),
             ]);
     }
 }

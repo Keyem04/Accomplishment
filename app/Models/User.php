@@ -3,25 +3,28 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
-use Illuminate\Support\Str;
-use Laravel\Sanctum\HasApiTokens;
+use Filament\Models\Contracts\FilamentUser;  // Add this import
 use Filament\Models\Contracts\HasName;
 use Filament\Panel;  // Add this import
-use Illuminate\Notifications\Notifiable;
-
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
-use Filament\Models\Contracts\FilamentUser;  // Add this import
+use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Str;
+use Laravel\Sanctum\HasApiTokens;
+use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable implements FilamentUser, HasName
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable;
+    use HasRoles, HasFactory, Notifiable;
 
     protected $connection = 'fms';
     protected $table = 'systemusers';
     protected $primaryKey = 'recid';
     public $timestamps = false;
+    public $incrementing = true;
+    protected $keyType = 'int';
+    protected $guard_name = 'web';
 
     protected $casts = [
         'is_active' => 'boolean',
@@ -30,7 +33,7 @@ class User extends Authenticatable implements FilamentUser, HasName
 
     public function canAccessPanel(Panel $panel): bool
     {
-        return $this->is_active == 1;
+        return true;
     }
 
     public function getAuthIdentifierName()
@@ -44,17 +47,7 @@ class User extends Authenticatable implements FilamentUser, HasName
         return $this->laravel_password ?? $this->UserPassword;
     }
 
-    protected $fillable = [
-        'FullName',
-        'Designation',
-        'UserName',
-        'UserPassword',
-        'laravel_password',
-        'UserType',
-        'email',
-        'department_code',
-        'is_active',
-    ];
+    protected $guarded = ['recid'];
 
     protected $hidden = [
         'UserPassword',

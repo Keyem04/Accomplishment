@@ -21,7 +21,9 @@ class EditUser extends EditRecord
      protected function getActions(): array
     {
         return [
-            Impersonate::make()->record($this->getRecord()) // <--
+            Impersonate::make()
+                ->record($this->getRecord())
+                ->successRedirectUrl(url('/accomplishment-headers'))
         ];
     }
 }

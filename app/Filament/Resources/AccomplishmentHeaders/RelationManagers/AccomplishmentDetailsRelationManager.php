@@ -71,6 +71,11 @@ class AccomplishmentDetailsRelationManager extends RelationManager
                     ->required()
                     ->columnSpanFull(),
 
+                TextInput::make('title_of_accomplishment')
+                    ->label('Title of Accomplishment')
+                    ->required()
+                    ->maxLength(255),
+                    
                 DatePicker::make('date')
                     ->label('Date')
                     ->live() // Make it reactive
@@ -89,11 +94,6 @@ class AccomplishmentDetailsRelationManager extends RelationManager
                             }
                         };
                     }),
-
-                TextInput::make('title_of_accomplishment')
-                    ->label('Title of Accomplishment')
-                    ->required()
-                    ->maxLength(255),
 
                 Textarea::make('brief_description')
                     ->label('Brief Description')

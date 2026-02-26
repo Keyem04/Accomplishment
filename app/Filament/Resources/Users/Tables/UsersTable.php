@@ -16,9 +16,9 @@ class UsersTable
     {
         return $table
             ->columns([
-                TextColumn::make('recid')
-                    ->label('ID')
-                    ->sortable(),
+                // TextColumn::make('recid')
+                //     ->label('ID')
+                //     ->sortable(),
 
                 TextColumn::make('FullName')
                     ->label('Full Name')
@@ -30,32 +30,44 @@ class UsersTable
                     ->searchable()
                     ->sortable(),
 
-                TextColumn::make('Designation')
+                BooleanColumn::make('is_active')
+                    ->label('Active')
+                    ->sortable(),
+                
+                TextColumn::make('email')
+                    ->searchable()
                     ->sortable(),
 
                 TextColumn::make('department_code')
                     ->label('Department Code')
                     ->sortable(),
 
-                TextColumn::make('UserType')
-                    ->label('User Type')
+                TextColumn::make('Designation')
                     ->sortable(),
 
-                BooleanColumn::make('is_active')
-                    ->label('Active')
-                    ->sortable(),
+                // TextColumn::make('UserType')
+                //     ->label('User Type')
+                //     ->sortable(),
 
-                TextColumn::make('passworddate')
-                    ->label('Password Set Date')
-                    ->sortable(),
+                // TextColumn::make('passworddate')
+                //     ->label('Password Set Date')
+                //     ->sortable(),
 
-                TextColumn::make('password_expiry')
-                    ->label('Password Expiry')
-                    ->sortable(),
+                // TextColumn::make('password_expiry')
+                //     ->label('Password Expiry')
+                //     ->sortable(),
 
-                TextColumn::make('email')
-                    ->searchable()
-                    ->sortable(),
+                TextColumn::make('roles.name')
+                    ->label('Role')
+                    ->badge()
+                    ->color(fn (string $state) => collect([
+                        'primary',
+                        'success',
+                        'warning',
+                        'danger',
+                        'info',
+                        'gray',
+                    ])[abs(crc32($state)) % 6]),
             ])
             ->filters([
                 //
@@ -63,7 +75,8 @@ class UsersTable
 
             ->recordActions([
                 EditAction::make(),
-                Impersonate::make(),
+                Impersonate::make()
+                    ->successRedirectUrl(url('/accomplishment-headers')),
             ])
 
             
