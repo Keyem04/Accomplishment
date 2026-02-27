@@ -2,12 +2,16 @@
 
 namespace App\Filament\Resources\Users\Tables;
 
-use Filament\Tables\Table;
-use Filament\Actions\EditAction;
+use App\Models\Office;
+use Dom\Text;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
-use Filament\Tables\Columns\TextColumn;
+use Filament\Actions\EditAction;
 use Filament\Tables\Columns\BooleanColumn;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Filters\TernaryFilter;
+use Filament\Tables\Table;
 use STS\FilamentImpersonate\Actions\Impersonate;
 
 class UsersTable
@@ -23,12 +27,14 @@ class UsersTable
                 TextColumn::make('FullName')
                     ->label('Full Name')
                     ->searchable()
-                    ->sortable(),
+                    ->sortable()
+                    ->wrap(),
 
                 TextColumn::make('UserName')
                     ->label('Username')
                     ->searchable()
-                    ->sortable(),
+                    ->sortable()
+                    ->wrap(),
 
                 BooleanColumn::make('is_active')
                     ->label('Active')
@@ -36,15 +42,36 @@ class UsersTable
                 
                 TextColumn::make('email')
                     ->searchable()
-                    ->sortable(),
+                    ->sortable()
+                    ->wrap(),
 
                 TextColumn::make('department_code')
                     ->label('Department Code')
-                    ->sortable(),
+                    ->sortable()
+                    ->searchable(),
 
                 TextColumn::make('Designation')
-                    ->sortable(),
+                    ->sortable()
+                    ->searchable()
+                    ->wrap(),
 
+                TextColumn::make('officeRelation.office')
+                    ->label('Office')
+                    ->formatStateUsing(function ($state, $record) {
+                        return $record->officeRelation
+                            ? $record->officeRelation->office .
+                                ($record->officeRelation->short_name
+                                    ? ' (' . $record->officeRelation->short_name . ')'
+                                    : '')
+                            : null;
+                    })
+                    ->sortable()
+                    ->searchable()
+                    ->wrap(),
+
+                TextColumn::make('cats')
+                    ->label('Cats number')
+                    ->searchable(),
                 // TextColumn::make('UserType')
                 //     ->label('User Type')
                 //     ->sortable(),
@@ -70,7 +97,22 @@ class UsersTable
                     ])[abs(crc32($state)) % 6]),
             ])
             ->filters([
-                //
+                TernaryFilter::make('is_active')
+                    ->label('Active Status')
+                    ->boolean(),
+                SelectFilter::make('department_code')
+                    ->label('Department Code')
+                    ->options(
+                        Office::query()
+                            ->pluck('department_code', 'department_code')
+                            ->toArray()
+                    )
+                    ->searchable(),
+                SelectFilter::make('roles')
+                    ->label('Role')
+                    ->relationship('roles', 'name')
+                    ->searchable()
+                    ->preload(),
             ])
 
             ->recordActions([

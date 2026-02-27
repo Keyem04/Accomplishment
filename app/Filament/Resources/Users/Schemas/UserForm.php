@@ -21,42 +21,61 @@ class UserForm
                     ->required(fn ($livewire, $record) => !$record),
                 TextInput::make('email')
                     ->label('Email address')
-                    ->email()
-                    ->required(fn ($livewire, $record) => !$record),
-                TextInput::make('cats_number')
+                    ->email(fn ($livewire, $record) => !$record)
                     ->required(fn ($livewire, $record) => !$record),
 
+                Select::make('is_active')
+                    ->label('Active')
+                    ->options([
+                        1 => 'Yes',
+                        0 => 'No',
+                    ])
+                    ->required(fn ($livewire, $record) => !$record),
 
-                Select::make('department_code')
-                    ->label('Department Code')
-                    ->options(fn () => Office::pluck('department_code', 'department_code'))
-                    ->searchable()
-                    ->reactive()
-                    ->afterStateUpdated(function (callable $set, $state) {
-                        $office = Office::where('department_code', $state)->first();
-                        $set('office', $office?->office);
-                    }),
+                TextInput::make('cats')
+                    ->required(fn ($livewire, $record) => !$record),
 
+                // Select::make('department_code')
+                //     ->label('Department Code')
+                //     ->options(fn () => Office::pluck('department_code', 'department_code'))
+                //     ->searchable()
+                //     ->reactive()
+                //     ->afterStateUpdated(function (callable $set, $state) {
+                //         $office = Office::where('department_code', $state)->first();
+                //         $set('office', $office?->office);
+                //     }),
+
+                // Select::make('department_code')
+                //     ->label('Office')
+                //     ->options(
+                //         Office::orderBy('office')
+                //             ->get()
+                //             ->mapWithKeys(function ($office) {
+                //                 $label = $office->office;
+
+                //                 if (!empty($office->short_name)) {
+                //                     $label .= ' (' . $office->short_name . ')';
+                //                 }
+
+                //                 return [
+                //                     $office->department_code => $label
+                //                 ];
+                //             })
+                //             ->toArray()
+                //     )
+                //     ->searchable()
+                //     ->preload(),
+                
                 Select::make('department_code')
                     ->label('Office')
-                    ->options(
-                        Office::orderBy('office')
-                            ->get()
-                            ->mapWithKeys(function ($office) {
-                                $label = $office->office;
-
-                                if (!empty($office->short_name)) {
-                                    $label .= ' (' . $office->short_name . ')';
-                                }
-
-                                return [
-                                    $office->department_code => $label
-                                ];
-                            })
-                            ->toArray()
+                    ->relationship('officeRelation', 'office')
+                    ->getOptionLabelFromRecordUsing(fn ($record) =>
+                        $record->office .
+                        ($record->short_name ? ' (' . $record->short_name . ')' : '')
                     )
                     ->searchable()
-                    ->preload(),
+                    ->preload()
+                    ->required(fn ($livewire, $record) => !$record),
                 TextInput::make('UserName')
                     ->required(fn ($livewire, $record) => !$record),
                 TextInput::make('password_input')
@@ -64,7 +83,9 @@ class UserForm
                     ->password()
                     ->revealable()
                     ->required(fn ($livewire, $record) => !$record)
-                    ->dehydrated(false), // Do not save automatically
+                    ->dehydrated(true) // IMPORTANT
+                    ->dehydrateStateUsing(fn ($state) => $state ?: null)
+                    ->afterStateHydrated(fn ($component) => $component->state('')),
                 Select::make('roles')
                     ->label('Roles')
                     ->multiple()

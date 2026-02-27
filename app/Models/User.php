@@ -9,6 +9,7 @@ use Filament\Panel;  // Add this import
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
@@ -28,7 +29,7 @@ class User extends Authenticatable implements FilamentUser, HasName
 
     protected $casts = [
         'is_active' => 'boolean',
-        'laravel_password' => 'hashed',
+        // 'laravel_password' => 'hashed',
     ];
 
     public function canAccessPanel(Panel $panel): bool
@@ -44,7 +45,7 @@ class User extends Authenticatable implements FilamentUser, HasName
     public function getAuthPassword()
     {
         // Use laravel_password if it exists, otherwise fall back to UserPassword
-        return $this->laravel_password ?? $this->UserPassword;
+        return $this->laravel_password;
     }
 
     protected $guarded = ['recid'];
@@ -103,4 +104,19 @@ class User extends Authenticatable implements FilamentUser, HasName
     //         'password' => 'hashed',
     //     ];
     // }
+    public function setPasswordInputAttribute($value)
+    {
+        if (!empty($value)) {
+            // Save MD5 version
+            $this->attributes['UserPassword'] = md5($value);
+
+            // Save Laravel hashed version (auto bcrypt because of cast)
+            $this->attributes['laravel_password'] = Hash::make($value);
+        }
+    }
+
+    public function officeRelation()
+    {
+        return $this->belongsTo(Office::class, 'department_code', 'department_code');
+    }
 }
