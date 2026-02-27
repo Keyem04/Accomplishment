@@ -123,11 +123,11 @@ class User extends Authenticatable implements FilamentUser, HasName
     public function roles(): \Illuminate\Database\Eloquent\Relations\MorphToMany
     {
         return $this->morphToMany(
-            config('permission.models.role'),
+            config('permission.models.role'), // Role model
             'model',
-            config('permission.table_names.model_has_roles'),
+            'accomplishment_db.model_has_roles', // full database.table name
             config('permission.column_names.model_morph_key'),
             'role_id'
-        )->using(ModelHasRole::class);
+        )->using(\App\Models\ModelHasRole::class);
     }
 }
