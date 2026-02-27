@@ -4,10 +4,10 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class ModelHasRole extends Model
+class ModelHasPermission extends Model
 {
+    protected $table = 'model_has_permissions';
     protected $connection = 'mysql';
-    protected $table = 'model_has_roles';
-    public $timestamps = false; //
+    public $timestamps = false;
     protected $guarded = [];
 }

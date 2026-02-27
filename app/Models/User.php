@@ -3,10 +3,12 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Models\Role;
 use Filament\Models\Contracts\FilamentUser;  // Add this import
 use Filament\Models\Contracts\HasName;
 use Filament\Panel;  // Add this import
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Hash;
@@ -120,14 +122,18 @@ class User extends Authenticatable implements FilamentUser, HasName
         return $this->belongsTo(Office::class, 'department_code', 'department_code');
     }
 
-    public function roles(): \Illuminate\Database\Eloquent\Relations\MorphToMany
+   /**
+     * Remove a role from this user
+     */
+    public function removeRole($role)
     {
-        return $this->morphToMany(
-            config('permission.models.role'),
-            'model',
-            config('permission.table_names.model_has_roles'), // let config drive this
-            config('permission.column_names.model_morph_key'),
-            'role_id'
-        )->using(\App\Models\ModelHasRole::class);
+        $roleId = $role instanceof Role ? $role->id : $role;
+
+        // This deletes from the pivot table in accomplishment_db
+        ModelHasRole::on('mysql')
+            ->where('role_id', $roleId)
+            ->where('model_type', static::class)
+            ->where('model_id', $this->recid)
+            ->delete();
     }
 }
