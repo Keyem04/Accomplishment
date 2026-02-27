@@ -119,4 +119,15 @@ class User extends Authenticatable implements FilamentUser, HasName
     {
         return $this->belongsTo(Office::class, 'department_code', 'department_code');
     }
+
+    public function roles(): \Illuminate\Database\Eloquent\Relations\MorphToMany
+    {
+        return $this->morphToMany(
+            config('permission.models.role'),
+            'model',
+            config('permission.table_names.model_has_roles'),
+            config('permission.column_names.model_morph_key'),
+            'role_id'
+        )->using(ModelHasRole::class);
+    }
 }
