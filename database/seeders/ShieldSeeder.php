@@ -12,7 +12,58 @@ class ShieldSeeder extends Seeder
     {
         app()[PermissionRegistrar::class]->forgetCachedPermissions();
 
-        $rolesWithPermissions = '[{"name":"super_admin","guard_name":"web","permissions":["ViewAny:AccomplishmentHeader","View:AccomplishmentHeader","Create:AccomplishmentHeader","Update:AccomplishmentHeader","Delete:AccomplishmentHeader","Restore:AccomplishmentHeader","ForceDelete:AccomplishmentHeader","ForceDeleteAny:AccomplishmentHeader","RestoreAny:AccomplishmentHeader","Replicate:AccomplishmentHeader","Reorder:AccomplishmentHeader","ViewAny:User","View:User","Create:User","Update:User","Delete:User","Restore:User","ForceDelete:User","ForceDeleteAny:User","RestoreAny:User","Replicate:User","Reorder:User","ViewAny:Role","View:Role","Create:Role","Update:Role","Delete:Role","Restore:Role","ForceDelete:Role","ForceDeleteAny:Role","RestoreAny:Role","Replicate:Role","Reorder:Role"]},{"name":"user","guard_name":"web","permissions":["ViewAny:AccomplishmentHeader","View:AccomplishmentHeader","Create:AccomplishmentHeader","Update:AccomplishmentHeader","Delete:AccomplishmentHeader","Restore:AccomplishmentHeader","ForceDelete:AccomplishmentHeader","ForceDeleteAny:AccomplishmentHeader","RestoreAny:AccomplishmentHeader","Replicate:AccomplishmentHeader","Reorder:AccomplishmentHeader"]}]';
+        $rolesWithPermissions = '[{"name":"super_admin",
+                                        "guard_name":"web",
+                                        "permissions":
+                                            ["ViewAny:AccomplishmentHeader",
+                                            "View:AccomplishmentHeader",
+                                            "Create:AccomplishmentHeader",
+                                            "Update:AccomplishmentHeader",
+                                            "Delete:AccomplishmentHeader",
+                                            "Restore:AccomplishmentHeader",
+                                            "ForceDelete:AccomplishmentHeader",
+                                            "ForceDeleteAny:AccomplishmentHeader",
+                                            "RestoreAny:AccomplishmentHeader",
+                                            "Replicate:AccomplishmentHeader",
+                                            "Reorder:AccomplishmentHeader",
+
+                                            "ViewAny:User",
+                                            "View:User",
+                                            "Create:User",
+                                            "Update:User",
+                                            "Delete:User",
+                                            "Restore:User",
+                                            "ForceDelete:User",
+                                            "ForceDeleteAny:User",
+                                            "RestoreAny:User",
+                                            "Replicate:User",
+                                            "Reorder:User",
+                                            
+                                            "ViewAny:Role",
+                                            "View:Role",
+                                            "Create:Role",
+                                            "Update:Role",
+                                            "Delete:Role",
+                                            "Restore:Role",
+                                            "ForceDelete:Role",
+                                            "ForceDeleteAny:Role",
+                                            "RestoreAny:Role",
+                                            "Replicate:Role",
+                                            "Reorder:Role"]},
+                                {"name":"user",
+                                        "guard_name":"web",
+                                        "permissions":
+                                            ["ViewAny:AccomplishmentHeader",
+                                            "View:AccomplishmentHeader",
+                                            "Create:AccomplishmentHeader",
+                                            "Update:AccomplishmentHeader",
+                                            "Delete:AccomplishmentHeader",
+                                            "Restore:AccomplishmentHeader",
+                                            "ForceDelete:AccomplishmentHeader",
+                                            "ForceDeleteAny:AccomplishmentHeader",
+                                            "RestoreAny:AccomplishmentHeader",
+                                            "Replicate:AccomplishmentHeader",
+                                            "Reorder:AccomplishmentHeader"]}]';
         $directPermissions = '[]';
 
         static::makeRolesWithPermissions($rolesWithPermissions);
