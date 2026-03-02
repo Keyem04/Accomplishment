@@ -121,19 +121,34 @@ class User extends Authenticatable implements FilamentUser, HasName
     {
         return $this->belongsTo(Office::class, 'department_code', 'department_code');
     }
-
-   /**
-     * Remove a role from this user
-     */
-    public function removeRole($role)
+  
+    public function roles(): MorphToMany
     {
-        $roleId = $role instanceof Role ? $role->id : $role;
+        $instance = $this->newRelatedInstance(Role::class);
 
-        // This deletes from the pivot table in accomplishment_db
-        ModelHasRole::on('mysql')
-            ->where('role_id', $roleId)
-            ->where('model_type', static::class)
-            ->where('model_id', $this->recid)
-            ->delete();
+        $instance->setConnection('mysql');
+
+        return $this->morphToMany(
+            Role::class,
+            'model',
+            'model_has_roles',
+            'model_id',
+            'role_id'
+        );
+    }
+
+    public function permissions(): MorphToMany
+    {
+        $instance = $this->newRelatedInstance(Permission::class);
+
+        $instance->setConnection('mysql');
+
+        return $this->morphToMany(
+            Permission::class,
+            'model',
+            'model_has_permissions',
+            'model_id',
+            'permission_id'
+        );
     }
 }
