@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class ModelHasPermission extends Model
 {
-    protected $table = 'model_has_permissions';
+    protected $table = 'accomplishment_db.model_has_permissions';
     protected $connection = 'mysql';
     public $timestamps = false;
     protected $guarded = [];
