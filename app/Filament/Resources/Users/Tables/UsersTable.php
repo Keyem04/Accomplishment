@@ -45,10 +45,10 @@ class UsersTable
                     ->sortable()
                     ->wrap(),
 
-                TextColumn::make('department_code')
-                    ->label('Department Code')
-                    ->sortable()
-                    ->searchable(),
+                // TextColumn::make('department_code')
+                //     ->label('Department Code')
+                //     ->sortable()
+                //     ->searchable(),
 
                 TextColumn::make('Designation')
                     ->sortable()
@@ -101,10 +101,17 @@ class UsersTable
                     ->label('Active Status')
                     ->boolean(),
                 SelectFilter::make('department_code')
-                    ->label('Department Code')
+                    ->label('Office')
                     ->options(
                         Office::query()
-                            ->pluck('department_code', 'department_code')
+                            ->get()
+                            ->mapWithKeys(fn ($office) => [
+                                $office->department_code =>
+                                    $office->office .
+                                    ($office->short_name
+                                        ? ' (' . $office->short_name . ')'
+                                        : '')
+                            ])
                             ->toArray()
                     )
                     ->searchable(),

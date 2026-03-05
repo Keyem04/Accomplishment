@@ -3,7 +3,6 @@
 namespace App\Filament\Resources\AccomplishmentHeaders\RelationManagers;
 
 use App\Filament\Resources\AccomplishmentHeaders\AccomplishmentHeaderResource;
-
 use App\Models\ProgramAndProject;
 use Filament\Actions\Action;
 use Filament\Actions\BulkAction;
@@ -22,6 +21,7 @@ use Filament\Schemas\Schema;
 use Filament\Tables\Columns\BadgeColumn;
 use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Enums\FiltersLayout;
 use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
@@ -114,6 +114,7 @@ class AccomplishmentDetailsRelationManager extends RelationManager
                 FileUpload::make('mov')
                     ->label('Mode of Verification (MOV) 1-2 pictures only per accomplishment')
                     ->image()
+                    ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])
                     ->multiple()
                     ->maxFiles(2)
                     ->maxSize(5120) // 5MB
@@ -122,6 +123,20 @@ class AccomplishmentDetailsRelationManager extends RelationManager
                     ->downloadable()
                     ->openable()
                     ->previewable()
+                    ->getUploadedFileNameForStorageUsing(
+                        function (\Illuminate\Http\UploadedFile $file): string {
+                            $extension = strtolower($file->getClientOriginalExtension());
+                            $baseName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+
+                            // Sanitize original name
+                            $safe = preg_replace('/[^a-zA-Z0-9_-]/', '_', $baseName);
+
+                            // UUID hash prefix + sanitized original name
+                            // e.g: 550e8400-e29b-41d4_bp_logo.jpg
+                            return (string) \Illuminate\Support\Str::uuid() . '_' . $safe . '.' . $extension;
+                        }
+                    )
+                    ->storeFileNamesIn('mov_original_names')
                     ->rules([
                         fn () => function (string $attribute, $value, $fail) {
                             $originalName = strtolower($value->getClientOriginalName());
@@ -148,7 +163,8 @@ class AccomplishmentDetailsRelationManager extends RelationManager
             ->columns([
                 TextColumn::make('date')
                     ->label('Date')
-                    ->date(),
+                    ->date()
+                    ->sortable(),
                 TextColumn::make('title_of_accomplishment')
                     ->label('Title of Accomplishment')
                     ->searchable()
@@ -270,10 +286,30 @@ class AccomplishmentDetailsRelationManager extends RelationManager
                                     $query->whereDate('date', '<=', $date)
                             );
                     }),
-            ])
 
+                SelectFilter::make('created_by')
+                    ->label('Created By')
+                    ->options(function () {
+                        $userDept = auth()->user()->department_code;
+
+                        // Get all users who belong to this department AND have created accomplishments
+                        return \App\Models\User::where('department_code', $userDept)
+                            ->whereIn('recid', \App\Models\AccomplishmentDetail::pluck('created_by')->filter()->toArray())
+                            ->orderBy('FullName')
+                            ->pluck('FullName', 'recid')
+                            ->toArray();
+                    })
+                    ->searchable()
+                    ->preload(),
+            ])
+            // ->filtersLayout(FiltersLayout::AboveContent)
+            
             ->headerActions([
                 CreateAction::make()
+                    ->mutateFormDataUsing(function (array $data): array {
+                        $data['created_by'] = auth()->user()->recid;
+                        return $data;
+                    })
                     ->visible(fn () => $this->ownerRecord->status !== 'submitted'),
             ])
              ->recordActions([

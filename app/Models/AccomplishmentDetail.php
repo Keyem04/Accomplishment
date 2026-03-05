@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Models\AccomplishmentHeader;
 use App\Models\ProgramAndProject;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -27,7 +28,17 @@ class AccomplishmentDetail extends Model
 
     protected $casts = [
         'mov' => 'array',
+        'mov_original_names' => 'array',
     ];
+
+    public function creator()
+    {
+        return $this->belongsTo(
+            User::class,
+            'created_by',
+            'recid'
+        );
+    }
 
     /**
      * Each detail belongs to a header

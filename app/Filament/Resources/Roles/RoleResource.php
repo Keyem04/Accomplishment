@@ -149,8 +149,7 @@ class RoleResource extends Resource
                                 ->send();
                         }
                         
-                    })
-                    ,
+                    }),
             ])
             ->toolbarActions([
                 DeleteBulkAction::make(),
