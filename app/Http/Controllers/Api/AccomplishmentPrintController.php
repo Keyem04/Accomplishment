@@ -51,6 +51,11 @@ class AccomplishmentPrintController extends Controller
                     ->map(fn ($imagePath) => url('storage/' . $imagePath))
                     ->values();
 
+                $signatoryTypeMap = [
+                    'prepared_by' => 'Prepared by',
+                    'submitted_by' => 'Submitted by',
+                ];
+
                 $data = [
                     'department_id' => $item->header?->department_id,
                     'office' => $item->header?->department?->office,
@@ -75,7 +80,7 @@ class AccomplishmentPrintController extends Controller
                     // 'noted_by' => $item->header?->noted_by,
 
                     // Signatories
-                    'signatory_type' => $item->header?->signatory_type ?? 'prepared_by', // default if not set
+                    'signatory_type' => $signatoryTypeMap[$item->header?->signatory_type ?? 'prepared_by'],
                     'prepared_by' => $item->header?->prepared_by,
                     'prepared_by_position' => $item->header?->prepared_by_position,
                     'noted_by' => $item->header?->noted_by,
