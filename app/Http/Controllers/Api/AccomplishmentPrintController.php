@@ -52,8 +52,8 @@ class AccomplishmentPrintController extends Controller
                     ->values();
 
                 $signatoryTypeMap = [
-                    'prepared_by' => 'Prepared by',
-                    'submitted_by' => 'Submitted by',
+                    'prepared_by' => 'Prepared by:',
+                    'submitted_by' => 'Submitted by:',
                 ];
 
                 $data = [
