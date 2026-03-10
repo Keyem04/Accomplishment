@@ -3,16 +3,13 @@
 namespace App\Filament\Resources\AccomplishmentHeaders\Schemas;
 
 use App\Models\Office;
-use App\Models\ProgramAndProject;
-use Filament\Forms\Components\DatePicker;
-use Filament\Forms\Components\FileUpload;
-use Filament\Forms\Components\Repeater;
+use Filament\Forms\Components\Radio;
 use Filament\Forms\Components\Select;
-use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Utilities\Get;
+use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
-use Filament\Support\Enums\Operation;
 use Illuminate\Validation\Rule;
 
 class AccomplishmentHeaderForm
@@ -100,25 +97,53 @@ class AccomplishmentHeaderForm
                 Section::make('Signatories')
                     ->schema([
 
+                        Radio::make('signatory_type')
+                            ->label('')
+                            ->options([
+                                'prepared_by' => 'Prepared By',
+                                'submitted_by' => 'Submitted By',
+                            ])
+                            ->default('prepared_by')
+                            ->reactive()
+                            ->columns(4)
+                            ->columnSpanFull(),
+
+                        // Hidden when submitted_by
                         TextInput::make('prepared_by')
                             ->label('Prepared By')
                             ->prefixIcon('heroicon-o-user')
                             ->helperText('This name will appear in the printed report')
-                            ->required()
+                            ->required(fn (Get $get) => $get('signatory_type') !== 'submitted_by')
+                            ->hidden(fn (Get $get) => $get('signatory_type') === 'submitted_by')
                             ->maxLength(150),
-                            // ->disabled(fn ($record) => $record?->status === 'submitted'),
 
+                        TextInput::make('prepared_by_position')
+                            ->label('Position (Prepared By)')
+                            ->prefixIcon('heroicon-o-briefcase')
+                            ->helperText('This position will appear in the printed report')
+                            ->required(fn (Get $get) => $get('signatory_type') !== 'submitted_by')
+                            ->hidden(fn (Get $get) => $get('signatory_type') === 'submitted_by')
+                            ->maxLength(150),
+
+                        // Label changes to Submitted By when submitted_by
                         TextInput::make('noted_by')
-                            ->label('Noted By')
+                            ->label(fn (Get $get) => $get('signatory_type') === 'submitted_by' ? 'Submitted By' : 'Noted By')
                             ->prefixIcon('heroicon-o-user')
                             ->helperText('This name will appear in the printed report')
                             ->required()
-                            ->maxLength(150)
-                            // ->disabled(fn ($record) => $record?->status === 'submitted'),
+                            ->maxLength(150),
+
+                        TextInput::make('noted_by_position')
+                            ->label(fn (Get $get) => $get('signatory_type') === 'submitted_by' ? 'Position (Submitted By)' : 'Position (Noted By)')
+                            ->prefixIcon('heroicon-o-briefcase')
+                            ->helperText('This position will appear in the printed report')
+                            ->required()
+                            ->maxLength(150),
 
                     ])
                     ->columns(2)
                     ->columnSpanFull(),
+
             ]);
     }
 }

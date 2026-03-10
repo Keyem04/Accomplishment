@@ -71,8 +71,15 @@ class AccomplishmentPrintController extends Controller
                     // 👇 MOV images flattened
                     'image1' => $images->get(0), // null if not exists
                     'image2' => $images->get(1), // null if not exists
+                    // 'prepared_by' => $item->header?->prepared_by,
+                    // 'noted_by' => $item->header?->noted_by,
+
+                    // Signatories
+                    'signatory_type' => $item->header?->signatory_type ?? 'prepared_by', // default if not set
                     'prepared_by' => $item->header?->prepared_by,
+                    'prepared_by_position' => $item->header?->prepared_by_position,
                     'noted_by' => $item->header?->noted_by,
+                    'noted_by_position' => $item->header?->noted_by_position,
                 ];
                 
              
