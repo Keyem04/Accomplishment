@@ -15,7 +15,11 @@ class ShieldSeeder extends Seeder
         $rolesWithPermissions = '[{"name":"super_admin",
                                         "guard_name":"web",
                                         "permissions":
-                                            ["ViewAny:AccomplishmentHeader",
+                                            [
+                                            "ViewAllDepartmentsAccomplishments:AccomplishmentHeader",    // 👈 ADD
+                                            "ViewWithinDepartmentsAccomplishments:AccomplishmentHeader"  // 👈 ADD
+        
+                                            "ViewAny:AccomplishmentHeader",
                                             "View:AccomplishmentHeader",
                                             "Create:AccomplishmentHeader",
                                             "Update:AccomplishmentHeader",
@@ -53,7 +57,9 @@ class ShieldSeeder extends Seeder
                                 {"name":"user",
                                         "guard_name":"web",
                                         "permissions":
-                                            ["ViewAny:AccomplishmentHeader",
+                                            [
+                                            "ViewWithinDepartmentsAccomplishments:AccomplishmentHeader" 
+                                            "ViewAny:AccomplishmentHeader",
                                             "View:AccomplishmentHeader",
                                             "Create:AccomplishmentHeader",
                                             "Update:AccomplishmentHeader",
