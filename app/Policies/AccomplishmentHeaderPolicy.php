@@ -67,4 +67,14 @@ class AccomplishmentHeaderPolicy
         return $authUser->can('Reorder:AccomplishmentHeader');
     }
 
+    public function viewAllDepartmentsAccomplishments(AuthUser $authUser, AccomplishmentHeader $accomplishmentHeader): bool
+    {
+        return $authUser->can('ViewAllDepartmentsAccomplishments:AccomplishmentHeader');
+    }
+
+    public function viewWithinDepartmentsAccomplishments(AuthUser $authUser, AccomplishmentHeader $accomplishmentHeader): bool
+    {
+        return $authUser->can('ViewWithinDepartmentsAccomplishments:AccomplishmentHeader');
+    }
+
 }

@@ -2,37 +2,72 @@
 
 namespace App\Filament\Resources\AccomplishmentHeaders\Tables;
 
-use Filament\Tables\Table;
-use Filament\Actions\Action;
-use Filament\Actions\EditAction;
 use App\Models\AccomplishmentHeader;
-use Illuminate\Support\Facades\Auth;
+use App\Models\Office;
+use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
-use Filament\Tables\Columns\TextColumn;
+use Filament\Actions\EditAction;
 use Filament\Tables\Columns\BadgeColumn;
+use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Grouping\Group;
+use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Auth;
 
 class AccomplishmentHeadersTable
 {
     public static function configure(Table $table): Table
     {
         return $table
+            // ->modifyQueryUsing(function (Builder $query) {
+            //     $user = Auth::user();
+                
+            //     // Filter: user's department_code must equal header's department_id
+            //     $query->where('department_id', $user->department_code);
+            // })
             ->modifyQueryUsing(function (Builder $query) {
                 $user = Auth::user();
-                
-                // Filter: user's department_code must equal header's department_id
-                $query->where('department_id', $user->department_code);
+
+                // ALWAYS eager load the department
+                $query->with('department');
+
+                if ($user->can('ViewAllDepartmentsAccomplishments:AccomplishmentHeader')) {
+                    return $query;
+                }
+
+                if ($user->can('ViewWithinDepartmentsAccomplishments:AccomplishmentHeader')) {
+                    return $query->where('department_id', $user->department_code);
+                }
+
+                // Fallback: no access — return empty
+                return $query->whereRaw('1 = 0');
             })
+            ->groups([
+                Group::make('department_id')
+                    ->label('Department')
+                    ->getTitleFromRecordUsing(fn ($record) => Office::find($record->department_id)?->office ?? 'N/A'),
+                Group::make('reporting_year')
+                    ->label('Year'),
+                Group::make('reporting_month')
+                    ->label('Month')
+                    ->getTitleFromRecordUsing(fn ($record) => date('F', mktime(0,0,0,$record->reporting_month,1))),
+            ])
+            ->defaultGroup('reporting_year') // default shown on load
+           
             ->columns([
-                // TextColumn::make('id')->label('ID')->sortable(),
                 
                 // TextColumn::make('department.office')
                 //     ->label('Department')
                 //     ->sortable()
-                //     ->searchable(),
+                //     ->searchable()
+                //     ->visible(fn () => Auth::user()->can('ViewAllDepartmentsAccomplishments:AccomplishmentHeader')),
+                TextColumn::make('department_id')
+                    ->label('Department')
+                    ->formatStateUsing(fn ($state) => Office::find($state)?->office)
+                    ->visible(fn () => Auth::user()->can('ViewAllDepartmentsAccomplishments:AccomplishmentHeader')),
             
                 TextColumn::make('reporting_month')
                     ->label('Month')

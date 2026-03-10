@@ -38,15 +38,25 @@ class AccomplishmentHeaderForm
 
                     Select::make('department_id')
                         ->label('Department')
-                        ->options(function () {
-                            // Get only the department of the logged-in user
-                            $userDeptCode = auth()->user()->department_code;
+                        ->options(function ($record) {
+                            if ($record) {
+                                // ✅ Editing: load the office of the record being viewed, not the logged-in user's
+                                return Office::where('id', $record->department_id)
+                                            ->pluck('office', 'id')
+                                            ->toArray();
+                            }
 
+                            // ✅ Creating: load the logged-in user's own department
+                            $userDeptCode = auth()->user()->department_code;
                             return Office::where('department_code', $userDeptCode)
                                         ->pluck('office', 'id')
                                         ->toArray();
                         })
-                        ->default(fn () => auth()->user()->department_code) // sets default selection
+                        ->default(function () {
+                            // Default for new records = logged-in user's office id
+                            return Office::where('department_code', auth()->user()->department_code)
+                                        ->value('id');
+                        })
                         ->searchable()
                         ->preload()
                         ->required()
@@ -65,9 +75,11 @@ class AccomplishmentHeaderForm
                         ->rule(function ($get, $record) {
                             return Rule::unique('accomplishment_headers', 'reporting_month')
                                 ->where(function ($query) use ($get) {
-                                    return $query->where('reporting_year', $get('reporting_year'));
+                                    return $query
+                                        ->where('reporting_year', $get('reporting_year'))
+                                        ->where('department_id', $get('department_id')); // 👈 scoped to their department
                                 })
-                                ->ignore($record?->id); // important for edit
+                                ->ignore($record?->id);
                         }),
 
                     Select::make('reporting_year')

@@ -2,6 +2,9 @@
 
 declare(strict_types=1);
 
+use App\Filament\Resources\AccomplishmentHeaders\AccomplishmentHeaderResource;
+
+
 return [
 
     /*
@@ -132,6 +135,8 @@ return [
             'forceDeleteAny',
             'restoreAny',
             'reorder',
+            'view_all_departments_accomplishments',
+            'view_within_departments_accomplishments',
         ],
     ],
 
@@ -171,6 +176,10 @@ return [
                 'create',
                 'update',
                 'delete',
+            ],
+            AccomplishmentHeaderResource::class => [
+                'view_all_departments_accomplishments', // custom method for viewing all departments' accomplishments
+                'view_within_departments_accomplishments', // custom method for viewing only within their department's accomplishments
             ],
         ],
         'exclude' => [
@@ -228,7 +237,9 @@ return [
     |
     */
 
-    'custom_permissions' => [],
+    'custom_permissions' => [
+        
+    ],
 
     /*
     |--------------------------------------------------------------------------

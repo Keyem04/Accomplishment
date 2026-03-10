@@ -21,7 +21,7 @@ class AccomplishmentHeader extends Model
    
     public function department()
     {
-        return $this->belongsTo(Office::class, 'department_id');
+        return $this->belongsTo(Office::class, 'department_id', 'department_code');
     }
     
     /**
