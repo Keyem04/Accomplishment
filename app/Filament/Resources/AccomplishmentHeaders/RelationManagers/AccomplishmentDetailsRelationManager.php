@@ -17,6 +17,7 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Resources\RelationManagers\RelationManager;
+use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\BadgeColumn;
 use Filament\Tables\Columns\ImageColumn;
@@ -54,14 +55,23 @@ class AccomplishmentDetailsRelationManager extends RelationManager
                 //     ->preload()
                 //     ->required()
                 //     ->columnSpanFull(),
-
+                    
+                
                 Select::make('ppa_id')
                     ->label('PPA')
-                    ->options(function () {
+                    ->options(function (Get $get) {
                         $userDeptCode = auth()->user()->department_code;
+                        $currentPpaId = $get('ppa_id');
 
                         return ProgramAndProject::whereNotNull('paps_desc')
-                            ->where('department_code', $userDeptCode) // filter by user's department
+                            ->where(function ($query) use ($userDeptCode, $currentPpaId) {
+                                $query->where('department_code', $userDeptCode);
+
+                                // Always include the current record's PPA even if it's from another dept
+                                if ($currentPpaId) {
+                                    $query->orWhere('id', $currentPpaId);
+                                }
+                            })
                             ->orderBy('paps_desc')
                             ->pluck('paps_desc', 'id')
                             ->toArray();
@@ -305,12 +315,50 @@ class AccomplishmentDetailsRelationManager extends RelationManager
             // ->filtersLayout(FiltersLayout::AboveContent)
             
             ->headerActions([
+                // CreateAction::make()
+                //     ->mutateFormDataUsing(function (array $data): array {
+                //         $data['created_by'] = auth()->user()->recid;
+                //         return $data;
+                //     })
+                //     ->visible(fn () => $this->ownerRecord->status !== 'submitted'),
                 CreateAction::make()
                     ->mutateFormDataUsing(function (array $data): array {
                         $data['created_by'] = auth()->user()->recid;
                         return $data;
                     })
-                    ->visible(fn () => $this->ownerRecord->status !== 'submitted'),
+                    ->visible(function () {
+                        $user = auth()->user();
+                        $record = $this->ownerRecord; // AccomplishmentHeader parent record
+
+                        $canViewAll   = $user->can('ViewAllDepartmentsAccomplishments:AccomplishmentHeader');
+                        $canViewOwn   = $user->can('ViewWithinDepartmentsAccomplishments:AccomplishmentHeader');
+                        $canEditOther = $user->can('EditOtherDepartmentAccomplishment:AccomplishmentHeader');
+                        $canEditOwn   = $user->can('EditWithinDepartmentsAccomplishments:AccomplishmentHeader');
+                        $isOwnRecord  = (int) $record->department_id === (int) $user->department_code;
+                        $isSubmitted  = $record->status === 'submitted';
+
+                        // Rule 1: ViewAll + EditOther = can create on ANY record including submitted
+                        if ($canViewAll && $canEditOther) {
+                            return true;
+                        }
+
+                        // All rules below: cannot create on submitted records
+                        if ($isSubmitted) {
+                            return false;
+                        }
+
+                        // Rule 2: ViewAll + EditWithin = own department only (non-submitted)
+                        if ($canViewAll && $canEditOwn) {
+                            return $isOwnRecord;
+                        }
+
+                        // Rule 3: ViewWithin + EditWithin = own department only (non-submitted)
+                        if ($canViewOwn && $canEditOwn) {
+                            return $isOwnRecord;
+                        }
+
+                        return false;
+                    }),
             ])
              ->recordActions([
                 // Action::make('togglePrint')
@@ -326,10 +374,83 @@ class AccomplishmentDetailsRelationManager extends RelationManager
                     ->label('View')
                     ->icon('heroicon-o-eye')
                     ->visible(fn () => $this->ownerRecord->status === 'submitted'), // only visible if submitted
+                // EditAction::make()
+                //    ->visible(fn () => $this->ownerRecord->status !== 'submitted'),
+                // DeleteAction::make()
+                //     ->visible(fn () => $this->ownerRecord->status !== 'submitted'),
                 EditAction::make()
-                   ->visible(fn () => $this->ownerRecord->status !== 'submitted'),
+                    ->mutateFormDataUsing(function (array $data): array {
+                        $data['created_by'] = auth()->user()->recid;
+                        return $data;
+                    })
+                    ->visible(function () {
+                        $user = auth()->user();
+                        $record = $this->ownerRecord;
+
+                        $canViewAll   = $user->can('ViewAllDepartmentsAccomplishments:AccomplishmentHeader');
+                        $canViewOwn   = $user->can('ViewWithinDepartmentsAccomplishments:AccomplishmentHeader');
+                        $canEditOther = $user->can('EditOtherDepartmentAccomplishment:AccomplishmentHeader');
+                        $canEditOwn   = $user->can('EditWithinDepartmentsAccomplishments:AccomplishmentHeader');
+                        $isOwnRecord  = (int) $record->department_id === (int) $user->department_code;
+                        $isSubmitted  = $record->status === 'submitted';
+
+                        // Rule 1: ViewAll + EditOther = can edit ANY record including submitted
+                        if ($canViewAll && $canEditOther) {
+                            return true;
+                        }
+
+                        // All rules below: cannot edit submitted records
+                        if ($isSubmitted) {
+                            return false;
+                        }
+
+                        // Rule 2: ViewAll + EditWithin = own department only (non-submitted)
+                        if ($canViewAll && $canEditOwn) {
+                            return $isOwnRecord;
+                        }
+
+                        // Rule 3: ViewWithin + EditWithin = own department only (non-submitted)
+                        if ($canViewOwn && $canEditOwn) {
+                            return $isOwnRecord;
+                        }
+
+                        return false;
+                    }),
+
                 DeleteAction::make()
-                    ->visible(fn () => $this->ownerRecord->status !== 'submitted'),
+                    ->visible(function () {
+                        $user = auth()->user();
+                        $record = $this->ownerRecord;
+
+                        $canViewAll     = $user->can('ViewAllDepartmentsAccomplishments:AccomplishmentHeader');
+                        $canViewOwn     = $user->can('ViewWithinDepartmentsAccomplishments:AccomplishmentHeader');
+                        $canDeleteOther = $user->can('DeleteOtherDepartmentAccomplishment:AccomplishmentHeader');
+                        $canDeleteOwn   = $user->can('DeleteWithinDepartmentsAccomplishments:AccomplishmentHeader');
+                        $isOwnRecord    = (int) $record->department_id === (int) $user->department_code;
+                        $isSubmitted    = $record->status === 'submitted';
+
+                        // Rule 1: ViewAll + DeleteOther = can delete ANY record including submitted
+                        if ($canViewAll && $canDeleteOther) {
+                            return true;
+                        }
+
+                        // All rules below: cannot delete submitted records
+                        if ($isSubmitted) {
+                            return false;
+                        }
+
+                        // Rule 2: ViewAll + DeleteWithin = own department only (non-submitted)
+                        if ($canViewAll && $canDeleteOwn) {
+                            return $isOwnRecord;
+                        }
+
+                        // Rule 3: ViewWithin + DeleteWithin = own department only (non-submitted)
+                        if ($canViewOwn && $canDeleteOwn) {
+                            return $isOwnRecord;
+                        }
+
+                        return false;
+                    }),
             ])
             ->toolbarActions([
                 BulkAction::make('includeSelected')
@@ -345,9 +466,46 @@ class AccomplishmentDetailsRelationManager extends RelationManager
                     ->action(fn ($records) =>
                         $records->each->update(['include_in_print' => false])
                     ),
-                DeleteBulkAction::make()
-                    ->disabled(fn ($records) => collect($records)->contains(fn ($record) => $this->ownerRecord->status === 'submitted')), // only show if there are draft records
+                // DeleteBulkAction::make()
+                //     ->disabled(fn ($records) => collect($records)->contains(fn ($record) => $this->ownerRecord->status === 'submitted')), // only show if there are draft records
                 
+                DeleteBulkAction::make()
+                    ->visible(function () {
+                        $user = auth()->user();
+                        $record = $this->ownerRecord;
+
+                        $canViewAll     = $user->can('ViewAllDepartmentsAccomplishments:AccomplishmentHeader');
+                        $canViewOwn     = $user->can('ViewWithinDepartmentsAccomplishments:AccomplishmentHeader');
+                        $canDeleteOther = $user->can('DeleteOtherDepartmentAccomplishment:AccomplishmentHeader');
+                        $canDeleteOwn   = $user->can('DeleteWithinDepartmentsAccomplishments:AccomplishmentHeader');
+                        $isOwnRecord    = (int) $record->department_id === (int) $user->department_code;
+                        $isSubmitted    = $record->status === 'submitted';
+
+                        // Rule 1: ViewAll + DeleteOther = can delete ANY record including submitted
+                        if ($canViewAll && $canDeleteOther) {
+                            return true;
+                        }
+
+                        // All rules below: cannot delete submitted records
+                        if ($isSubmitted) {
+                            return false;
+                        }
+
+                        // Rule 2: ViewAll + DeleteWithin = own department only (non-submitted)
+                        if ($canViewAll && $canDeleteOwn) {
+                            return $isOwnRecord;
+                        }
+
+                        // Rule 3: ViewWithin + DeleteWithin = own department only (non-submitted)
+                        if ($canViewOwn && $canDeleteOwn) {
+                            return $isOwnRecord;
+                        }
+
+                        return false;
+                    })
+                    ->disabled(fn ($records) => collect($records)->contains(
+                        fn ($record) => $this->ownerRecord->status === 'submitted'
+                    )),
             ]);
     }
 }

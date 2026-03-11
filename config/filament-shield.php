@@ -135,8 +135,12 @@ return [
             'forceDeleteAny',
             'restoreAny',
             'reorder',
-            'view_all_departments_accomplishments',
-            'view_within_departments_accomplishments',
+            'viewAllDepartmentsAccomplishments',
+            'viewWithinDepartmentsAccomplishments',
+            'deleteOtherDepartmentAccomplishment',
+            'deleteWithinDepartmentsAccomplishments',
+            'editOtherDepartmentAccomplishment',      
+            'editWithinDepartmentsAccomplishments',   
         ],
     ],
 
@@ -180,6 +184,10 @@ return [
             AccomplishmentHeaderResource::class => [
                 'view_all_departments_accomplishments', // custom method for viewing all departments' accomplishments
                 'view_within_departments_accomplishments', // custom method for viewing only within their department's accomplishments
+                'delete_other_department_accomplishment',      
+                'delete_within_departments_accomplishments',  
+                'edit_other_department_accomplishment',      
+                'edit_within_departments_accomplishments',
             ],
         ],
         'exclude' => [

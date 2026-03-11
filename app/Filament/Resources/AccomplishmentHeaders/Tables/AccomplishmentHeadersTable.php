@@ -16,6 +16,7 @@ use Filament\Tables\Grouping\Group;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class AccomplishmentHeadersTable
 {
@@ -156,24 +157,76 @@ class AccomplishmentHeadersTable
             ])
             
             ->recordActions([
+                // Action::make('submit')
+                //     ->label(fn ($record) => $record->status === 'submitted' ? 'Submitted' : 'Submit')
+                //     ->modalHeading('Confirm Submission') // Title of the confirmation modal
+                //     ->modalDescription('Once submitted, this record cannot be edited. Are you sure you want to submit?') // Custom message
+                //     ->icon('heroicon-o-lock-closed')
+                //     ->color(fn ($record) => $record->status === 'submitted' ? 'gray' : 'success')
+                //     ->disabled(fn ($record) => $record->status === 'submitted')
+                //     ->requiresConfirmation(fn ($record) => $record->status !== 'submitted')
+                //     ->action(function ($record) {
+                //         if ($record->status !== 'submitted') {
+                //             $record->update([
+                //                 'status' => 'submitted',
+                //             ]);
+                //         }
+                //     })
+                //     ->after(function ($record, $livewire) {
+                //         // Refresh the table automatically after action
+                //         $livewire->refresh();
+                //     }),
+
                 Action::make('submit')
                     ->label(fn ($record) => $record->status === 'submitted' ? 'Submitted' : 'Submit')
-                    ->modalHeading('Confirm Submission') // Title of the confirmation modal
-                    ->modalDescription('Once submitted, this record cannot be edited. Are you sure you want to submit?') // Custom message
+                    ->modalHeading('Confirm Submission')
+                    ->modalDescription('Once submitted, this record cannot be edited. Are you sure you want to submit?')
                     ->icon('heroicon-o-lock-closed')
                     ->color(fn ($record) => $record->status === 'submitted' ? 'gray' : 'success')
-                    ->disabled(fn ($record) => $record->status === 'submitted')
+                    ->disabled(fn ($record) => 
+                        $record->status === 'submitted' || 
+                        $record->accomplishmentdetails()->count() === 0
+                    )
                     ->requiresConfirmation(fn ($record) => $record->status !== 'submitted')
                     ->action(function ($record) {
                         if ($record->status !== 'submitted') {
-                            $record->update([
-                                'status' => 'submitted',
-                            ]);
+                            $record->update(['status' => 'submitted']);
                         }
                     })
                     ->after(function ($record, $livewire) {
-                        // Refresh the table automatically after action
                         $livewire->refresh();
+                    })
+                    ->visible(function ($record) {
+                        $user = auth()->user();
+
+                        $canViewAll   = $user->can('ViewAllDepartmentsAccomplishments:AccomplishmentHeader');
+                        $canViewOwn   = $user->can('ViewWithinDepartmentsAccomplishments:AccomplishmentHeader');
+                        $canEditOther = $user->can('EditOtherDepartmentAccomplishment:AccomplishmentHeader');
+                        $canEditOwn   = $user->can('EditWithinDepartmentsAccomplishments:AccomplishmentHeader');
+                        $isOwnRecord  = (int) $record->department_id === (int) $user->department_code;
+                        $isSubmitted  = $record->status === 'submitted';
+
+                        // Always show "Submitted" button if already submitted (just disabled)
+                        if ($isSubmitted) {
+                            return $canViewAll || ($canViewOwn && $isOwnRecord);
+                        }
+
+                        // Rule 1: ViewAll + EditOther = can submit ANY record
+                        if ($canViewAll && $canEditOther) {
+                            return true;
+                        }
+
+                        // Rule 2: ViewAll + EditWithin = own department only
+                        if ($canViewAll && $canEditOwn) {
+                            return $isOwnRecord;
+                        }
+
+                        // Rule 3: ViewWithin + EditWithin = own department only
+                        if ($canViewOwn && $canEditOwn) {
+                            return $isOwnRecord;
+                        }
+
+                        return false;
                     }),
 
                 Action::make('print')
@@ -192,18 +245,136 @@ class AccomplishmentHeadersTable
                     ]))
                     ->slideOver()
                     ->disabled(fn ($record) => $record->accomplishmentdetails()->count() === 0),
-                EditAction::make() 
-                    ->visible(fn ($record) => $record->status !== 'submitted'),
+                EditAction::make()
+                    ->visible(function ($record) {
+                        $user = auth()->user();
+
+                        $canViewAll   = $user->can('ViewAllDepartmentsAccomplishments:AccomplishmentHeader');
+                        $canViewOwn   = $user->can('ViewWithinDepartmentsAccomplishments:AccomplishmentHeader');
+                        $canEditOther = $user->can('EditOtherDepartmentAccomplishment:AccomplishmentHeader');
+                        $canEditOwn   = $user->can('EditWithinDepartmentsAccomplishments:AccomplishmentHeader');
+                        $isOwnRecord  = (int) $record->department_id === (int) $user->department_code;
+                        $isSubmitted  = $record->status === 'submitted';
+
+                        // Rule 1: ViewAll + EditOther = can edit ANY record including submitted
+                        if ($canViewAll && $canEditOther) {
+                            return true;
+                        }
+
+                        // All rules below: cannot edit submitted records
+                        if ($isSubmitted) {
+                            return false;
+                        }
+
+                        // Rule 2: ViewAll + EditWithin = own department only (non-submitted)
+                        if ($canViewAll && $canEditOwn) {
+                            return $isOwnRecord;
+                        }
+
+                        // Rule 3: ViewWithin + EditWithin = own department only (non-submitted)
+                        if ($canViewOwn && $canEditOwn) {
+                            return $isOwnRecord;
+                        }
+
+                        return false;
+                    }),
                 DeleteAction::make()
-                    ->visible(fn ($record) => $record->status !== 'submitted'),
+                    ->visible(function ($record) {
+                        $user = auth()->user();
+
+                        $canViewAll     = $user->can('ViewAllDepartmentsAccomplishments:AccomplishmentHeader');
+                        $canViewOwn     = $user->can('ViewWithinDepartmentsAccomplishments:AccomplishmentHeader');
+                        $canDeleteOther = $user->can('DeleteOtherDepartmentAccomplishment:AccomplishmentHeader');
+                        $canDeleteOwn   = $user->can('DeleteWithinDepartmentsAccomplishments:AccomplishmentHeader');
+                        $isOwnRecord    = (int) $record->department_id === (int) $user->department_code; // ← fix
+                        $isSubmitted    = $record->status === 'submitted';
+
+                        // Rule 1: ViewAll + DeleteOther = can delete ANY record including submitted
+                        if ($canViewAll && $canDeleteOther) {
+                            return true;
+                        }
+
+                        // All rules below: cannot delete submitted records
+                        if ($isSubmitted) {
+                            return false;
+                        }
+
+                        // Rule 2: ViewAll + DeleteWithin = own department only (non-submitted)
+                        if ($canViewAll && $canDeleteOwn) {
+                            return $isOwnRecord;
+                        }
+
+                        // Rule 3: ViewWithin + DeleteWithin = own department only (non-submitted)
+                        if ($canViewOwn && $canDeleteOwn) {
+                            return $isOwnRecord;
+                        }
+
+                        return false;
+                    }),
+
             ])
             ->toolbarActions([
+                // BulkActionGroup::make([
+                //     DeleteBulkAction::make()
+                //         ->action(function ($records) {
+                //             // Only delete draft/not-submitted records
+                //             foreach ($records as $record) {
+                //                 if ($record->status !== 'submitted') {
+                //                     $record->delete();
+                //                 }
+                //             }
+                //         }),
+                // ]),
                 BulkActionGroup::make([
                     DeleteBulkAction::make()
+                        ->visible(function () {
+                            $user = auth()->user();
+
+                            $canViewAll     = $user->can('ViewAllDepartmentsAccomplishments:AccomplishmentHeader');
+                            $canViewOwn     = $user->can('ViewWithinDepartmentsAccomplishments:AccomplishmentHeader');
+                            $canDeleteOther = $user->can('DeleteOtherDepartmentAccomplishment:AccomplishmentHeader');
+                            $canDeleteOwn   = $user->can('DeleteWithinDepartmentsAccomplishments:AccomplishmentHeader');
+
+                            // Rule 1: ViewAll + DeleteOther = can see bulk delete
+                            if ($canViewAll && $canDeleteOther) {
+                                return true;
+                            }
+
+                            // Rule 2: ViewAll + DeleteWithin = can see bulk delete
+                            if ($canViewAll && $canDeleteOwn) {
+                                return true;
+                            }
+
+                            // Rule 3: ViewWithin + DeleteWithin = can see bulk delete
+                            if ($canViewOwn && $canDeleteOwn) {
+                                return true;
+                            }
+
+                            return false;
+                        })
                         ->action(function ($records) {
-                            // Only delete draft/not-submitted records
+                            $user = auth()->user();
+
+                            $canDeleteOther = $user->can('DeleteOtherDepartmentAccomplishment:AccomplishmentHeader');
+                            $canDeleteOwn   = $user->can('DeleteWithinDepartmentsAccomplishments:AccomplishmentHeader');
+
                             foreach ($records as $record) {
-                                if ($record->status !== 'submitted') {
+                                $isOwnRecord = (int) $record->department_id === (int) $user->department_code;
+                                $isSubmitted = $record->status === 'submitted';
+
+                                // Rule 1: ViewAll + DeleteOther = can delete any including submitted
+                                if ($user->can('ViewAllDepartmentsAccomplishments:AccomplishmentHeader') && $canDeleteOther) {
+                                    $record->delete();
+                                    continue;
+                                }
+
+                                // All others: skip submitted records
+                                if ($isSubmitted) {
+                                    continue;
+                                }
+
+                                // Rule 2 & 3: can only delete own department
+                                if ($canDeleteOwn && $isOwnRecord) {
                                     $record->delete();
                                 }
                             }

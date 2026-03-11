@@ -67,14 +67,34 @@ class AccomplishmentHeaderPolicy
         return $authUser->can('Reorder:AccomplishmentHeader');
     }
 
-    public function viewAllDepartmentsAccomplishments(AuthUser $authUser, AccomplishmentHeader $accomplishmentHeader): bool
+    public function viewAllDepartmentsAccomplishments(AuthUser $authUser): bool
     {
         return $authUser->can('ViewAllDepartmentsAccomplishments:AccomplishmentHeader');
     }
 
-    public function viewWithinDepartmentsAccomplishments(AuthUser $authUser, AccomplishmentHeader $accomplishmentHeader): bool
+    public function viewWithinDepartmentsAccomplishments(AuthUser $authUser): bool
     {
         return $authUser->can('ViewWithinDepartmentsAccomplishments:AccomplishmentHeader');
+    }
+
+    public function deleteOtherDepartmentAccomplishment(AuthUser $authUser): bool
+    {
+        return $authUser->can('DeleteOtherDepartmentAccomplishment:AccomplishmentHeader');
+    }
+
+    public function deleteWithinDepartmentsAccomplishments(AuthUser $authUser): bool
+    {
+        return $authUser->can('DeleteWithinDepartmentsAccomplishments:AccomplishmentHeader');
+    }
+
+    public function editOtherDepartmentAccomplishment(AuthUser $authUser): bool
+    {
+        return $authUser->can('EditOtherDepartmentAccomplishment:AccomplishmentHeader');
+    }
+
+    public function editWithinDepartmentsAccomplishments(AuthUser $authUser): bool
+    {
+        return $authUser->can('EditWithinDepartmentsAccomplishments:AccomplishmentHeader');
     }
 
 }
