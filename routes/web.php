@@ -25,7 +25,9 @@ Route::get('/login/authentication', function (Request $request) {
     }
 
     Auth::login($user);
-    return redirect()->to('/accomplishment-headers');
+    return redirect()->to('/');
 });
 
 Route::get('accomplishments/print', [AccomplishmentPrintController::class, 'print']);
+
+

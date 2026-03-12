@@ -56,10 +56,11 @@ class AccomplishmentHeaderResource extends Resource
             'edit' => EditAccomplishmentHeader::route('/{record}/edit'),
         ];
     }
+
     
-    public static function getTableQuery(): Builder
-    {
-        return parent::getTableQuery()
-            ->where('department_code', auth()->user()->department_code);
-    }
+    // public static function getTableQuery(): Builder
+    // {
+    //     return parent::getTableQuery()
+    //         ->where('department_code', auth()->user()->department_code);
+    // }
 }

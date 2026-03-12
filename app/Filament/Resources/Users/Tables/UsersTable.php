@@ -125,7 +125,6 @@ class UsersTable
             ->recordActions([
                 EditAction::make(),
                 Impersonate::make()
-                    ->successRedirectUrl(url('/accomplishment-headers')),
             ])
 
             
